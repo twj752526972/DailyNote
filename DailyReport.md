@@ -12,3 +12,9 @@
 ![git-2](git-2.png)
 *   [git ssh免登陆，以及ssh config](https://www.cnblogs.com/meitian/p/6776129.html)
 ![ssh_config](ssh_config.png)
+
+### 20211220
+*   上海QC test，CT cell分析，15/17的概率，同一个cell，MIB解不好
+*   请假半天
+*   帮忙刘璐看POWER_PROFILING_LOG的问题
+*   请教JY关于SD-RDP的事情，是远程桌面使用vscode的
