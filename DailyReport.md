@@ -18,3 +18,11 @@
 *   请假半天
 *   帮忙刘璐看POWER_PROFILING_LOG的问题
 *   请教JY关于SD-RDP的事情，是远程桌面使用vscode的
+
+### 20211221
+*   MIB的combine次数调整成128，去看BB实际会用到的次数，lockf到(2506, 271)
+    > 从之前的结果来看，BB有效的合并次数在某些条件下没有被满足，不同周期里mib的sub-block不会被soft combine
+![mib_combine](mib_combine.png)
+    > 看起来lock过去后，SI都解不下来，attach做不成功
+*   试用owen提供的jenkins job去trigger北京QC
+    > 卡住在download image，130的jenkins那边的credentials改成了开机(签核)密码，待确认
