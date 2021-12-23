@@ -26,3 +26,9 @@
     > 看起来lock过去后，SI都解不下来，attach做不成功
 *   试用owen提供的jenkins job去trigger北京QC
     > 卡住在download image，130的jenkins那边的credentials改成了开机(签核)密码，待确认
+
+### 20211222
+*   新增苏州两台PC和深圳PC的jenkins client
+    > 有请IT帮忙开通实验室可以访问130的jenkins网页
+*   lockf到(2506, 271)，比对试验：combine次数加到最大为128 vs 保持原有mainline的combine次数不变的数据整理
+![mib_decode_result_analyze](mib_decode_result_analyze.png)
