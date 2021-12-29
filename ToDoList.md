@@ -1,7 +1,7 @@
 ### 20211226
 *   上海QC的MIB分析
     > ***branch v3.1***
-    >>**CMCC**：board 1，已知PAPR过了threshold，但RSSI没有明显差异时，可能有必要做比对实验：通过find cell来pick出SNR较好的cell
+    >>**CMCC**：board 1
     >>**CT**：board 3，(2506，271)这个cell的MIB解不好
     >>>~~1.除了将combine count调整为最大128以外~~
     >>>~~2.还需要将收mib起始的系统帧位置对齐640ms的frame boundary~~
@@ -11,7 +11,7 @@
     >>**CT**：board 2
 
     > ***master***
-    >>**CMCC**：board 0
+    >>**CMCC**：board 0，已知PAPR过了threshold，但RSSI没有明显差异时，可能有必要做比对实验：通过find cell来pick出SNR较好的cell
 
 *   jenkins trigger QC for 北京/深圳
 *   ~~Verify the flash log about MIB/SIB1/SI in branch v2.0~~
