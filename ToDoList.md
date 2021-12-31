@@ -19,8 +19,12 @@
     > **CMCC**：看起来板子的位置没放好，导致在camp on cell时，容易serving cell lost
     > **CT**：access bar
 *   Fix the compile warning
+    > l1c_npbch.c(556): warning: Variable pNpbch in function l1cMibResourceConflict might be used uninitialized
 *   R15
     > 1.spec学习
+    > * ~~Reduced system acquisition time~~
+    > * Improved latency - UE specific DRX
+    > 
     > 2.VPHY part
 *   Freq Scan
     > 1.code trace (50%)

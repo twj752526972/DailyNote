@@ -67,4 +67,29 @@
 *   帮owen commit：rrc diag update for extending coreid to support different branch
 *   协助harris并发实验
 
+### 20211229
+*   Reduced system acquisition time
+
+### 20211230
+*   Reduced system acquisition time
+    > 1.和casey讨论SIB1的子帧3和子帧4如何combine的问题
+    > 2.API: l1cPhyNpdschInit以及函数npdschInitializationRTK
+    ```sh
+    if (infoType!=2)
+        pL1NpdschRxData->localRep = 1; // 这边注意后面要改成Nrep
+    else
+        pL1NpdschRxData->localRep = (Nrep > 4) ? 4 : Nrep;
+    ```
+
+### 20211231
+*   Reduced system acquisition time
+    > 1.把additionalTransmissionSib1放在L1C_SIB1_SCHEDULING这个struct里，由于解background SIB1的时候，background MIB不会送给上层，所以拿不到additionalTransmissionSIB1，只能从raw data取得
+    > 2.解到MIB后的(npbchDecodeResult.npbch[2] & 0x01)就是
+    .... ...0 additionalTransmissionSIB1-r15: False
+    ![mib_contetnt](mib_content.png)
+    > 3.更新programTime和l1cSetRxPreprocessConfig的时间
+
+
+
+
     
