@@ -89,6 +89,12 @@
     ![mib_contetnt](mib_content.png)
     > 3.更新programTime和l1cSetRxPreprocessConfig的时间
 
+### 20220104
+*   Fix the compile warning about MIB/SIB1/SI
+    > 1. 防止使用负的数组下标，[解决 array subscript has type char 错误](https://blog.csdn.net/sjygqz/article/details/106583420)
+    ![array_subscript](array_subscript.png)
+*   Commit the code (Reduced system acquisition time) to the master with the macro <font color='red'> ENABLE_R15_ADDITIONAL_TRANS_SIB1 </font>
+
 
 
 
