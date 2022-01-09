@@ -23,7 +23,8 @@
 *   R15
     > 1.spec学习
     > * ~~Reduced system acquisition time~~
-    > * Improved latency - UE specific DRX
+    > * ~~Improved latency - UE specific DRX~~
+    > * ~~Presence of NRS on a non-anchor carrier for paging~~
     > 
     > 2.VPHY part
 *   Freq Scan

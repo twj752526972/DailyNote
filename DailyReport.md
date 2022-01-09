@@ -95,6 +95,23 @@
     ![array_subscript](array_subscript.png)
 *   Commit the code (Reduced system acquisition time) to the master with the macro <font color='red'> ENABLE_R15_ADDITIONAL_TRANS_SIB1 </font>
 
+### 20220105
+*   Improved latency - UE specific DRX
+*   听ethan_xu汇报关于dump NPSS IQ的相关内容
+
+### 20220106
+*   Improved latency - UE specific DRX
+    > 和casey讨论关于CSS overlap的含义，应该是表示当ue-SpecificDRX-CycleMin被使用时，PCCH configuration中的npdcch-NumRepetitionPaging-r13不能太大，导致search space overlap的情况
+    ![CSS_overlap](CSS_overlap.png)
+*   zoey_yang汇报关于R15 feature的相关内容
+
+### 20220107
+*   Presence of NRS on a non-anchor carrier for paging
+    > 和casey讨论关于NRS的的位置是在PO前的第10th个DL subframe开始
+    >> * 原因1：不同UE PO group(当Ns=4时，PO=0，4，5)里面PO前的DL subframe上的NRS可以被某个UE(当Ns=4时，该UE的PO=9)使用
+    >> ![PO_group](PO_group.png)
+    >> * 原因2：为了满足NRSRP measurement，有做过SNR accuracy的simulation，PO前和PO后的DL subframe个数加起来要为8~10个
+*   查找CR ***R2-1818628***：关于 ***additionalTxSIB1-Config*** 和DL subframe的关系，更新PPT，有待讨论
 
 
 
