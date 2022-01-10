@@ -112,6 +112,7 @@
     >> ![PO_group](PO_group.png)
     >> * 原因2：为了满足NRSRP measurement，有做过SNR accuracy的simulation，PO前和PO后的DL subframe个数加起来要为8~10个
 *   查找CR ***R2-1818628***：关于 ***additionalTxSIB1-Config*** 和DL subframe的关系，更新PPT，有待讨论
+*   回顾zoey_yang的document：Code Review of EDT
 
 
 
