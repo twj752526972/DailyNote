@@ -14,7 +14,7 @@
     >>**CMCC**：board 0，已知PAPR过了threshold，但RSSI没有明显差异时，可能有必要做比对实验：通过find cell来pick出SNR较好的cell
 
 *   ~~jenkins trigger QC for 北京/深圳~~
-*   ~~~SIB1的combine次数是否需要double~~~
+*   ~~SIB1的combine次数是否需要double~~
 *   ~~Verify the flash log about MIB/SIB1/SI in branch v2.0~~
 *   深圳的QC
     > **CMCC**：看起来板子的位置没放好，导致在camp on cell时，容易serving cell lost
