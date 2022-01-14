@@ -122,7 +122,7 @@
 
 ### 20220111
 *   和casey讨论并且commit code：关于有条件地调整SIB1的combine次数
-*   关于 ***additionalTxSIB1-Config*** 和DL subframe的关系，和casey确认理解：除非additionalTxSIB1-Config配成true，UE否则UE不应该在不包含SIB1的子帧3上monitor下行相关的NPDCCH/NPDSCH
+*   关于 ***additionalTxSIB1-Config*** 和DL subframe的关系，和casey确认理解：除非additionalTxSIB1-Config配成true，否则UE不应该在不包含SIB1的子帧3上monitor下行相关的NPDCCH/NPDSCH
     > ***<font color='red'> 36.213 16.4 Narrowband physical downlink shared channel related procedures </font>***
     except when the UE is configured with higher layer parameter additionalTxSIB1-Config set to TRUE, subframe #3 not containing additional SystemInformationBlockType1-NB transmission is assumed as a NB-IoT DL subframe if the UE monitors a NPDCCH UE-specific search space or decodes NPDSCH transmission scheduled by NPDCCH in the UE-specific search space.
     > 
@@ -140,7 +140,7 @@
     > 再执行MODEM_DIR=/SDLC/usr/RSDOMAIN/manda_tang/code/modem ./build_cooper_tracker_pet.sh
 ### 20220113
 *   Study the test cases in 36.523-1
-*   安装Docker in beijing/shenzhen PC
+*   安装Docker in Beijing/Shenzhen PC
     ```
     sudo apt install docker.io
     sudo usermod -a -G docker jenkins
