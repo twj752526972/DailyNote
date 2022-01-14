@@ -114,6 +114,42 @@
 *   查找CR ***R2-1818628***：关于 ***additionalTxSIB1-Config*** 和DL subframe的关系，更新PPT，有待讨论
 *   回顾zoey_yang的document：Code Review of EDT
 
+### 20220110
+*   和emma/casey讨论关于SIB1的combine次数是否有需要enlarge为2倍
+    > 对比MIB的combine次数之前有enlarge为2倍的情况，BB在combine时，不同640ms的data不会拿来combine，原因是两个不同640ms的mib信息是不同的，编码后整个mib就是不同的，combine时合并的是软信息(表示为0或1的可能性大小)，如果原始的0/1数据并不相同，没法简单地直接把软信息相加
+    > 对于解SIB1的时候，由于已知MIB里的系统帧信息+低2位的hyper帧信息，所以SIB1这边在enlarge combine次数时，一旦发现初始计算的combine次数跨过了2个hyper boundary，就需要调整
+*   L1C bi-weekly周会
 
+### 20220111
+*   和casey讨论并且commit code：关于有条件地调整SIB1的combine次数
+*   关于 ***additionalTxSIB1-Config*** 和DL subframe的关系，和casey确认理解：除非additionalTxSIB1-Config配成true，UE否则UE不应该在不包含SIB1的子帧3上monitor下行相关的NPDCCH/NPDSCH
+    > ***<font color='red'> 36.213 16.4 Narrowband physical downlink shared channel related procedures </font>***
+    except when the UE is configured with higher layer parameter additionalTxSIB1-Config set to TRUE, subframe #3 not containing additional SystemInformationBlockType1-NB transmission is assumed as a NB-IoT DL subframe if the UE monitors a NPDCCH UE-specific search space or decodes NPDSCH transmission scheduled by NPDCCH in the UE-specific search space.
+    > 
+    > ***R2-1818628***
+    However, the scenario of initial connection establishment hasn’t been covered by the current specifications. For a R15 UE that supports additional SIB1, the UE would always assume there exists dedicated transmission for it in subframe #3 not containing additional SIB1 after reception of Msg4. But for eNB, after transmission of Msg4 and before end of UE capability acquisition, the eNB would not schedule dedicated transmission on the subframe #3. The UE may incorrectly monitor NPDCCH and decode NPDSCH transmission, and finally failure to receive the downlink messages. Then for example, the UE capability acquisition procedure or RRC reconfiguration procedure may fail.
+    > 
+    > Therefore, the UE that supports additional SIB1 cannot assume by default the subframe #3 not containing additional SIB1 transmission as valid DL subframe. An explicit indication to UE would be needed. The UE can assume the subframe #3 not containing additional SIB1 transmission as valid DL subframe only after it obtains the indication from the eNB. For the eNB, it can set such indication for indicating subframe #3 as valid DL subframe in RRC message, e.g, Msg4 only after it acquires the UE capability.
+*   Release RAM space for R15 meeting by Ted
 
-    
+### 20220112
+*   Review the code about VPHY R15
+*   Study the spec 36.211/36.212/36.213 of R15
+*   Build image for [NBIOTCOPER-2809](NBIOTCOPER-2809)
+    > build cooper时，需要先执行./clean.sh，否则会报错
+    > 再执行MODEM_DIR=/SDLC/usr/RSDOMAIN/manda_tang/code/modem ./build_cooper_tracker_pet.sh
+### 20220113
+*   Study the test cases in 36.523-1
+*   安装Docker in beijing/shenzhen PC
+    ```
+    sudo apt install docker.io
+    sudo usermod -a -G docker jenkins
+    sudo sh -c 'echo "{ \"insecure-registries\": [\"172.26.5.129\"] }" > /etc/docker/daemon.json'
+    sudo systemctl restart docker
+    ```
+*   WUS(wake-up signal)相关meeting调查
+    > ***RAN WG1 #92bis：Final_Minutes_report_RAN1#92b_v100***
+*   sudo systemctl <font color='red'>start</font> jenkins-slave.service
+    > 需要将agent.jar的user改为：/home/jenkins$ sudo chown <font color='red'>jenkins:jenkins agent.jar</font>
+    > 
+    > 在sudo systemctl <font color='red'>enable</font> jenkins-slave.service之后，手动执行start service的动作或者重新restart PC
