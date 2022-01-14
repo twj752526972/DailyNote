@@ -152,4 +152,7 @@
 *   sudo systemctl <font color='red'>start</font> jenkins-slave.service
     > 需要将agent.jar的user改为：/home/jenkins$ sudo chown <font color='red'>jenkins:jenkins agent.jar</font>
     > 
-    > 在sudo systemctl <font color='red'>enable</font> jenkins-slave.service之后，手动执行start service的动作或者重新restart PC
+    > 在sudo systemctl <font color='red'>enable</font> jenkins-slave.service之后，手动执行start service的动作或者restart PC
+*   协助casey在SDN内安装vscode-cpptools，版本需为1.8.0-insiders2
+    > [vscode-cpptools 1.8.0-insiders2](https://github.com/microsoft/vscode-cpptools/releases/tag/1.8.0-insiders2)
+*   checkout branch ***phy_save_ram***，后续需要将MIB/SIB1/SI的code搬到Flash
