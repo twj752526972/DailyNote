@@ -26,9 +26,12 @@
     > * ~~Reduced system acquisition time~~
     > * ~~Improved latency - UE specific DRX~~
     > * ~~Presence of NRS on a non-anchor carrier for paging~~
+    > * 准备PPT (70%)
     > 
     > 2.VPHY part
+    > * ~~WUS 调查~~
+    > * Paging with Group Wake Up Signal
 *   Freq Scan
     > 1.code trace (50%)
     > 2.study the document given by Luna
-*   将MIB/SIB1/SI的code搬到Flash，在branch ***phy_save_ram*** 上执行
+*   ~~将MIB/SIB1/SI的code搬到Flash，在branch ***phy_save_ram*** 上执行~~

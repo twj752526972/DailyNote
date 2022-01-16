@@ -156,3 +156,16 @@
 *   协助casey在SDN内安装vscode-cpptools，版本需为1.8.0-insiders2
     > [vscode-cpptools 1.8.0-insiders2](https://github.com/microsoft/vscode-cpptools/releases/tag/1.8.0-insiders2)
 *   checkout branch ***phy_save_ram***，后续需要将MIB/SIB1/SI的code搬到Flash
+
+### 20220114
+*   将MIB/SIB1/SI/Drx/Resource manage的code搬到Flash
+*   WUS(wake-up signal)相关meeting调查
+    > ***R1-1803867 On configurations and procedures of power saving signal Huawei, HiSilicon***
+    > Proposal 3: The list of values of configured maximum duration of WUS is ![maxDurationFactor](maxDurationFactor.png) valid subframes.
+    > And we also propose that the configured maximum duration of WUS is defined in the number of valid subframes, which is similar with the definition of Rmax.
+    > 
+    > ***RAN WG1 #92bis：Final_Minutes_report_RAN1#92b_v100***
+    >> Agreement
+    > WUS is postponed in subframes that are not NB-IoT DL subframes and is not transmitted [FFS dropped/postponed] in the subframes that carries SIs other than SIB1.
+    >>> Note: “Postpone” means the corresponding subframes are not counted as configured maximum WUS transmission duration and actual WUS transmission duration.
+    >>> Note: This does not imply that the minimum gap between the end of actual WUS duration and the first associated PO is reduced
