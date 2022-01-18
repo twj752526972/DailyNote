@@ -169,3 +169,11 @@
     > WUS is postponed in subframes that are not NB-IoT DL subframes and is not transmitted [FFS dropped/postponed] in the subframes that carries SIs other than SIB1.
     >>> Note: “Postpone” means the corresponding subframes are not counted as configured maximum WUS transmission duration and actual WUS transmission duration.
     >>> Note: This does not imply that the minimum gap between the end of actual WUS duration and the first associated PO is reduced
+
+### 20220117
+*   协助ethan_xu cherry-pick from master to branch 3.1
+    > git commit --amend的使用
+*   revert掉：Drx/Resource manage的code搬到Flash
+    > connected下会用到的函数暂时不适合搬到flash
+*   profile MIB/SIB1/SI模块中各个state用到的cycle count (for master)
+*   EDT/Format2 参数handle
