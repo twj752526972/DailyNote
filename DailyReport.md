@@ -194,3 +194,4 @@
 *   profile MIB/SIB1/SI模块中各个state用到的cycle count (for master vs branch phy_save_ram)
 ![profile_cycle_count_system_info](profile_cycle_count_system_info.png)
 *   EDT/Format2 参数handle (60%)
+*   jira记录：使用at command去控制release version [NBIOTCOPER-2816](https://jira.realtek.com/browse/NBIOTCOPER-2816)
