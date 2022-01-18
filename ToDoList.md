@@ -35,3 +35,4 @@
     > 1.code trace (50%)
     > 2.study the document given by Luna
 *   ~~将MIB/SIB1/SI的code搬到Flash，在branch ***phy_save_ram*** 上执行~~
+*   build POSIX报error的问题

@@ -141,7 +141,7 @@
 ### 20220113
 *   Study the test cases in 36.523-1
 *   安装Docker in Beijing/Shenzhen PC
-    ```
+    ```sh
     sudo apt install docker.io
     sudo usermod -a -G docker jenkins
     sudo sh -c 'echo "{ \"insecure-registries\": [\"172.26.5.129\"] }" > /etc/docker/daemon.json'
@@ -177,3 +177,20 @@
     > connected下会用到的函数暂时不适合搬到flash
 *   profile MIB/SIB1/SI模块中各个state用到的cycle count (for master)
 *   EDT/Format2 参数handle
+
+### 20220118
+*   RS-PC-3、RS-PC-4的jenkins-slave service的secret key设置错误，导致断连
+*   配置VS-code的remote-ssh不用输入密码
+    > 1.在10.22.13.104中输入ssh-keygen
+    > 2.将生成的id_rsa-remote-ssh.pub copy到10.22.13.24中的~/.ssh/
+    > 3.打开VScode配置SSH config，在最后一行添加IdentityFile，(每台Host底下都要写)
+    >>```sh
+    >>IdentityFile ~/.ssh/id_rsa-remote-ssh
+    >>```
+    > 4.在10.22.13.25中执行：
+    >>```sh
+    >>cat id_rsa-remote-ssh.pub >> authorized_keys
+    >>```
+*   profile MIB/SIB1/SI模块中各个state用到的cycle count (for master vs branch phy_save_ram)
+![profile_cycle_count_system_info](profile_cycle_count_system_info.png)
+*   EDT/Format2 参数handle (60%)
