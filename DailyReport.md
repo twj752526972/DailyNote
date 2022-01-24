@@ -195,3 +195,22 @@
 ![profile_cycle_count_system_info](profile_cycle_count_system_info.png)
 *   EDT/Format2 参数handle (60%)
 *   jira记录：使用at command去控制release version [NBIOTCOPER-2816](https://jira.realtek.com/browse/NBIOTCOPER-2816)
+
+### 20220119
+*   [NBIOTCOPER-447](https://jira.realtek.com/browse/NBIOTCOPER-447)
+    > 有看到702640 MSG_ID_LTE_PHYARRC_DIRECT_IND_INFO_IND
+*   narrow down [NBIOTCOPER-2817](https://jira.realtek.com/browse/NBIOTCOPER-2817)
+*   36.304 V16.5.0 Chapter 7.6
+### 20220120
+*   36.304 V16.5.0 Chapter 7.5.1、7.5.2
+*   学习wip的用法，git commit中需要带上
+    >```sh
+    >%ap_config=PET_TRACKER=1%
+    >```
+### 20220121
+*   36.304 V16.5.0 Chapter 7.5.3、7.5.4
+*   Group Wake up signal meeting调查
+    > ***Final_Minutes_report_RAN1#90b_v100***
+    > R1-1718141 Wake-up signal configurations and procedures	Qualcomm Incorporated
+    > R1-1719471 On configurations and procedures of power saving signal Huawei, HiSilicon
+*   Sync with casey about nprach parameters in SIB22-NB and SIB23-NB

@@ -32,7 +32,17 @@
     > variable initializer是指UINT32 var = 0;這樣，
     > 本來就會有其他initial value來源就不要這樣多寫一動，
     > MyStruct s = {0}; 也是類似的意思，這樣寫就叫variable initializer
-    
+
+### 20220120
+##### 在使用wip时，确认git commit中带入的某个macro是否生效 ---- By JY
+*   如果那個variable有生效的話會立刻停下
+    >```sh
+    >ifeq ($(PET_TRACKER), 1)
+    >$(warning PET_TRACKER = 1!!!)
+    >INCLUDES += -I../../../project/cooper_example/example_sources/yek
+    >...
+    >endif
+    >```
 
 
 

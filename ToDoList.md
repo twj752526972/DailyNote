@@ -36,3 +36,4 @@
     > 2.study the document given by Luna
 *   ~~将MIB/SIB1/SI的code搬到Flash，在branch ***phy_save_ram*** 上执行~~
 *   build POSIX报error的问题
+*   ~~nprach相关参数在L1C的database里或许可以精简(看使用场景只有Rmax相关参数而已)，讨论完发现少了2个左右~~
