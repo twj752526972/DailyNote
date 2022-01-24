@@ -211,6 +211,12 @@
 *   36.304 V16.5.0 Chapter 7.5.3、7.5.4
 *   Group Wake up signal meeting调查
     > ***Final_Minutes_report_RAN1#90b_v100***
-    > R1-1718141 Wake-up signal configurations and procedures	Qualcomm Incorporated
+    > R1-1718141 Wake-up signal configurations and procedures Qualcomm Incorporated
     > R1-1719471 On configurations and procedures of power saving signal Huawei, HiSilicon
 *   Sync with casey about nprach parameters in SIB22-NB and SIB23-NB
+
+### 20220124
+*   [NBIOTCOPER-2824](https://jira.realtek.com/browse/NBIOTCOPER-2824)
+*   narrow down [NBIOTCOPER-2822](https://jira.realtek.com/browse/NBIOTCOPER-2822)
+*   协助harris使用SDN
+*   L1C bi-weekly meeting
