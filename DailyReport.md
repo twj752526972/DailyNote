@@ -220,3 +220,7 @@
 *   narrow down [NBIOTCOPER-2822](https://jira.realtek.com/browse/NBIOTCOPER-2822)
 *   协助harris使用SDN
 *   L1C bi-weekly meeting
+
+### 20220125
+*   [NBIOTCOPER-2825](https://jira.realtek.com/browse/NBIOTCOPER-2825)
+*   EDT feature in spec 36.321 V15.11.0
