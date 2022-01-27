@@ -224,3 +224,30 @@
 ### 20220125
 *   [NBIOTCOPER-2825](https://jira.realtek.com/browse/NBIOTCOPER-2825)
 *   EDT feature in spec 36.321 V15.11.0
+
+### 20220126
+*   36.523-1 V16.11.0 GCF case study
+*   sync with lizzie about EDT/Fmt2 parameter
+*   SIB1 decode fail in Taipei Dazhi office
+*   学习assert/fail log dump from flash
+*   review the difference of l1c_npbch.c between branch v2.0 and master
+*   跟JY了解wireshark plugins(for windows platform)
+
+### 20220127
+*   [NBIOTCOPER-2827](https://jira.realtek.com/browse/NBIOTCOPER-2827)
+    > 持续观察台北大直办公室是否还有该现象，该cell operation mode为guardband
+*   查找资料：关于在子帧3(在特定配置下：repetition为16时)上传输SIB1的原因
+    > ***R1-1712629,Reduced system acquisition time for NB-IoT, Ericsson***
+    > Among the three NB-IoT deployment modes, the in-band deployment requires longer system acquisition time due to lower transmit power level and puncturing that may occur on NPSS and NSSS resources. Additionally, compared to the standalone and guard-band modes, NPDSCH subframes in the in-band mode have fewer available resource elements due to resources taken by LTE CRS or reserved for LTE downlink control region. This results in a higher coding rate and thus a lower coding gain and reduced reception performance of SIB1-NB and SI messages. Thus, improvement for system acquisition time reduction should primarily target the in-band mode. The solutions that can reduce the system acquisition time for the in-band mode can be directly applied to the guard-band and standalone modes as well.
+    >
+    > ***R1-1705188, “On system acquisition time reduction,” RAN1#88b, source Ericsson, 3 – 7 April, 2017.***
+    > SIB1-NB acquisition performance can be significantly improved by combining across multiple SIB1-NB transmission periods within a SIB1-NB modification period and cross-subframe channel estimation.
+    > 
+    > ***R1-1712629,Reduced system acquisition time for NB-IoT, Ericsson***
+    > On a Rel-13 NB-IoT anchor carrier, the percentage of resource elements available for NPDCCH/NPDSCH symbols, excluding those carrying SIB1-NB, is only 42% in the worst-case scenario (in-band, 3 OFDM symbols for LTE PDCCH, and 4 CRS ports). Using more NPBCH repetitions will further reduce the percentage of resource elements available for NPDCCH/NPDSCH.
+    > Using more NPBCH subframes is not considered in Rel-15.
+    > 
+    > ***R1-1717278 System information acquisition latency enhancement	LG Electronics***
+    > ![AdditionalTransSIB1_1](AdditionalTransSIB1_1.png)
+    > ![AdditionalTransSIB1_2](AdditionalTransSIB1_2.png)
+*   build target for POSIX platform
