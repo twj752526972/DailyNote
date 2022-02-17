@@ -44,6 +44,12 @@
     >endif
     >```
 
+### 20220208
+##### git push --force && git-rewrite-history ----By JY
 
+### 20220210
+##### Redundancy Version ----By Hendry
+*   [Redundancy Version in 5G](https://devopedia.org/5g-nr-hybrid-arq)
+*   [Why rv’s decoding is done as 0,2,3 1?](http://telcosought.com/4g-ran/harq-rvs-with-pdsch-channel-processing-in-lte/)
 
 

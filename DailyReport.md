@@ -107,10 +107,13 @@
 
 ### 20220107
 *   Presence of NRS on a non-anchor carrier for paging
+    > ***R1-1903914 NRS presence on non-anchor carriers for paging Huawei, HiSilicon***
     > 和casey讨论关于NRS的的位置是在PO前的第10th个DL subframe开始
     >> * 原因1：不同UE PO group(当Ns=4时，PO=0，4，5)里面PO前的DL subframe上的NRS可以被某个UE(当Ns=4时，该UE的PO=9)使用
     >> ![PO_group](PO_group.png)
     >> * 原因2：为了满足NRSRP measurement，有做过SNR accuracy的simulation，PO前和PO后的DL subframe个数加起来要为8~10个
+    >
+    > ***R1-1903896 Presence of NRS on a non-anchor carrier for paging in NB-IoT Ericsson***
 *   查找CR ***R2-1818628***：关于 ***additionalTxSIB1-Config*** 和DL subframe的关系，更新PPT，有待讨论
 *   回顾zoey_yang的document：Code Review of EDT
 
@@ -261,3 +264,52 @@
     > 
     > ***Final_Minutes_report_RAN1#92_v100***
     > ![AdditionalTransSIB1_agreement](AdditionalTransSIB1_agreement.png)
+
+### 20220208
+*   询问JY关于git reset (或rebase)把local branches重新對齊remote branches on SDLC-Gerrit
+*   和王凤翔sync关于continue reading from the virtual circular buffer的含义
+*   narrow down jira issue [NBIOTCOPER-2828](https://jira.realtek.com/browse/NBIOTCOPER-2828)
+
+### 20220209
+*   准备Additional Transmission SIB1的PPT(70%)
+*   查找资料关于repetition number为4 or 8时，不采用additional transmission sib1的原因
+    > 暂时没翻到曾经看过的：NW不预期认为UE是处于weak coverage，如果repetition number配置为4 or 8的话；并且在同样增加了system overhead的情况下，UE获得的benefit没有repetition number为16时那么大。
+
+### 20220210
+*   准备Additional Transmission SIB1的PPT (100%)
+*   和勇哥sync关于PPT中Alt1./Alt2./Alt3.的performance问题
+*   从R13到R16的5G物联网之路：Chapter 5
+
+### 20220211
+*   从R13到R16的5G物联网之路：Chapter 5
+    > EDT feature (60%)
+
+### 20220214
+*   L1C bi-weekly周会
+*   安装Pulse Secure
+*   配置Teams on windows 11
+    > 解决error:caa70007，[禁用代理服务器](https://www.biaopan8.com/8722.html)
+
+### 20220215
+*   Spec R16 36.304：Presence of NRS on a non-anchor carrier for paging
+    > 理解The POs with associated NRS的物理意义 (40%)
+
+### 20220216
+*   查看相关R1-xxxxxxx proposal：Presence of NRS on a non-anchor carrier for paging
+*   试用wireshark-rtk-ra-static
+    > 1.旧的wireshark-rtk-ra需要purge 以及 ta.so和ta-dump.so需要删除
+    > 2.Mint下打开wireshark闪退问题的解决办法：libcdex upgrade到1.3，JY有将llvm symbols隐藏起来
+*   从R13到R16的5G物联网之路：Chapter 6
+    > 理解The POs with associated NRS的物理意义 (70%)
+    > 粗读Group Wake up Signal的物理意义 (40%)
+
+### 20220217
+*   read wireshark.md
+*   和Dennis大概讨论enable_cooper_phy_lib在build cdex.database时的问题
+    > 由于之后都会采用wireshark-rtk-ra-static，所以只需要.xml文件就可以解析log，这点跟logAssist2一样，而enable_cooper_phy_lib并没有free-struct.xml，所以需要修改makefile文件
+    > 之前是cdex/client中通过.h同时生成.cpp和.xml，再拿到cdex/wireshark去生成.so
+*   和Emma/Casey讨论有关收取SI的过程中上报out of sync的问题 (当UE处于静止时)
+    > 1-a.reference SNR的设定问题，基于该reference SNR加上SNR的variance可以得到低于某个SNR，即可认为解不下来SI
+    > 1-b.判定低于某个SNR的占比超过ratio的时间：每次repetition结束 or SI window结束 or tune
+    > 2-a.需要BB提供 SNR variance for low SNR in ETU-5
+    > 2-b.需要BB提供 ratio? (align to out-of-sync ratio?)
