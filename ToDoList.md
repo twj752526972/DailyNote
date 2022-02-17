@@ -26,7 +26,7 @@
     > * ~~Reduced system acquisition time~~
     > * ~~Improved latency - UE specific DRX~~
     > * ~~Presence of NRS on a non-anchor carrier for paging~~
-    > * 准备PPT (70%)
+    > * 准备PPT (100%)
     > 
     > 2.VPHY part
     > * ~~WUS 调查~~
