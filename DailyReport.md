@@ -313,3 +313,28 @@
     > 1-b.判定低于某个SNR的占比超过ratio的时间：每次repetition结束 or SI window结束 or tune
     > 2-a.需要BB提供 SNR variance for low SNR in ETU-5
     > 2-b.需要BB提供 ratio? (align to out-of-sync ratio?)
+
+### 20220218
+*   和Emma/Casey讨论有关收取SI的过程中上报out of sync的问题 (当UE处于静止时)
+    > 确认BB提供的simulation仿真图的理解，是通过横轴看or纵轴看，当SNR = -15dB时，落入-12dB以下的概率为95%，落入-15dB以下的概率为50%，落入-18dB以下的概率为5%
+    ![SNR_variance_AWGN](SNR_variance_AWGN.png)
+*   和Casey讨论有关于EDT feature的物理意义 (70%)
+
+### 20220221
+*   从R13到R16的5G物联网之路：Chapter 6
+    > 粗读Group Wake up Signal的物理意义 (80%)
+*   需要确认RRC那边给定的BC timer(for SI)是否可以cover到4s的时间长度
+    > periodicity = 640ms， window length = 480ms，repetition pattern = 2RF，cntPerWindow = 24，max combine count = 128，可以求得timer长度为(128 / 24 + 1) * 640 = 3840ms < 4000ms = 4s
+    > ```sh
+    > BC_UpdateSIWaitTimer()
+    > u8 cntPerWindow = u16SiWindowLength[pMsg->si_WindowLength_r13] / (u8SiRepetitionPattern[pSchedulingInfo->value.MEMB(si_RepetitionPattern)]);
+    > u32 newSIWaitTimer = ((MAX_SIB_RETRY_COUNT / cntPerWindow) + 1) * (u16Periodicity[pSchedulingInfo->value.MEMB(si_Periodicity)]); /* 1 is for compensation */
+    > ```
+
+### 20220222
+*   Additional Transmission SIB1 report (Done)
+    > 1.BB有提到选择Alt3的好处在于：对fading或是突发的干扰到来时，subframe #4和subframe #3相同位置的RE在频域方向的同一个子载波发生衰落，但由于传输的bit不同，所以鲁棒性更强
+    ![Alt1_disadvantage](Alt1_disadvantage.png)
+    > 2. Emma有补充说明：downlink bitmap是10bit和40bit两种配置(为了降低code rate以及向Rel-13/Rel-14兼容，不预期通过40bit来表明子帧3是否可用)，已知40bit可以框住40个子帧，而10bit只能表示1个radio frame，会不知道是奇数帧还是偶数帧，最终3GPP决定在没有进USS之前，子帧3对应的bitmap是0，所有的UE都不能拿子帧3来使用(收NPDCCH/NPDSCH)，等进了USS，网络端可以根据UE的capability，进行调整，flag拉起来，表示非sib1的那个子帧3可以用来收NPDCCH/NPDSCH
+*   从R13到R16的5G物联网之路：Chapter 6
+    > 粗读Group Wake up Signal的物理意义 (95%)
