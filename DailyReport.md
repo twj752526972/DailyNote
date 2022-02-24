@@ -338,4 +338,21 @@
     > 2. Emma有补充说明：downlink bitmap是10bit和40bit两种配置(为了降低code rate以及向Rel-13/Rel-14兼容，不预期通过40bit来表明子帧3是否可用)，已知40bit可以框住40个子帧，而10bit只能表示1个radio frame，会不知道是奇数帧还是偶数帧，最终3GPP决定在没有进USS之前，子帧3对应的bitmap是0，所有的UE都不能拿子帧3来使用(收NPDCCH/NPDSCH)，等进了USS，网络端可以根据UE的capability，进行调整，flag拉起来，表示非sib1的那个子帧3可以用来收NPDCCH/NPDSCH
 *   从R13到R16的5G物联网之路：Chapter 6
     > 粗读Group Wake up Signal的物理意义 (95%)
+*   从R13到R16的5G物联网之路：Chapter 5
     > 粗读NPRACH Format 2 (20%)
+
+### 20220223
+*   从R13到R16的5G物联网之路：Chapter 5
+    > 1.粗读NPRACH Format 2 (75%)
+    > 2.small cell / mixed operation mode etc.
+*   粗读EDT_R15 PPT
+*   和勇哥讨论QC log：TC_9_3_2022.02.23-03.15.48.talog
+    > tracking cell search提前做完，sleep 2s后再收MIB
+*   和casey讨论SI early termination的相关理解
+
+### 20220224
+*   LTE meeting by Tim
+*   从R13到R16的5G物联网之路：Chapter 5
+    > 回顾EDT feature (85%)
+*   branch rel15
+    > trace the code difference between master and rel15 in vphy_ra.c 
