@@ -355,4 +355,12 @@
 *   从R13到R16的5G物联网之路：Chapter 5
     > 回顾EDT feature (85%)
 *   branch rel15
-    > trace the code difference between master and rel15 in vphy_ra.c 
+    > trace the code difference between master and rel15 in vphy_ra.c
+
+### 20220225
+*   refine the NPRACH config about EDT and fmt2 in branch rel15
+*   和casey讨论NPUSCH postponement when conflict with NPRACH resource
+
+### 20220228
+*   merge the flash log dump of PHY Statistic and System Info from master to SDK-release-v31
+*   refine the TB size in RAR info and fix the bug about the repetition of Msg3
