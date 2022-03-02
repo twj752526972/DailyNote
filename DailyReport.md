@@ -364,3 +364,8 @@
 ### 20220228
 *   merge the flash log dump of PHY Statistic and System Info from master to SDK-release-v31
 *   refine the TB size in RAR info and fix the bug about the repetition of Msg3
+
+### 20220301
+*   VPHY R15 SR feature
+    > 1.store the dedicated configurations about SR
+    > 2.process SR req from MAC
