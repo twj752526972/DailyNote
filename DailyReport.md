@@ -369,3 +369,28 @@
 *   VPHY R15 SR feature
     > 1.store the dedicated configurations about SR
     > 2.process SR req from MAC
+
+### 20220302
+*   VPHY R15 SR feature
+    > inform the start of SR prohibit timer to MAC
+*   L1C weekly meeting
+*   sync extended PHR with zoey_yang
+    > 14dBm等价于Power class 6(36.101中Table 6.2.2F-1: UE Power Class)
+    > PHR table需要参考 TS 36.133 Table 9.1.23.4-1A，Table 9.1.23.4-1，Table 9.1.23.4-2 
+
+### 20220303
+*   L1C EDT report by Casey
+*   Sync SR feature with zoey_yang
+    > 1.preamble的第一个子帧需要通知MAC，MAC取消pending的SR
+    > 2.preamble的最后一个子帧需要通知MAC，MAC开启SR prohibit timer
+*   查找R15中DRX on duration timer的相关CR(doing)
+    > For NB-IoT, onDurationTimer may start within a PDCCH period and end within a PDCCH period. The UE shall monitor NPDCCH during these partial PDCCH periods while onDurationTimer is running.
+
+### 20220304
+*   debug dump flash log on branch 3.1
+    > MSG_ID_LTE_PHYADP_MONITOR_RPT_IND到ID_ADP_MonitorInfo的过程，栏位可能有问题
+*   和Casey讨论SI early termination
+*   协助Ted debug QC test 9 在iteration=1时assert的问题(branch phy save ram)
+    > timeout_value需要设成4 hour，原本3 hour来不及跑完
+*   协助勇哥抓branch 2.0的talog
+    > at^setlog=1需要打开
