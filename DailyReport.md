@@ -383,8 +383,17 @@
 *   Sync SR feature with zoey_yang
     > 1.preamble的第一个子帧需要通知MAC，MAC取消pending的SR
     > 2.preamble的最后一个子帧需要通知MAC，MAC开启SR prohibit timer
-*   查找R15中DRX on duration timer的相关CR(doing)
-    > For NB-IoT, onDurationTimer may start within a PDCCH period and end within a PDCCH period. The UE shall monitor NPDCCH during these partial PDCCH periods while onDurationTimer is running.
+    > 3.commit by version **mainline_rel15 cb163374**
+*   查找R15中DRX on duration timer的相关CR (Done) (Rel-14中L1C已经实现)
+    > ***RP-192941***
+    >> For NB-IoT, onDurationTimer may start within a PDCCH period and end within a PDCCH period. The UE shall monitor NPDCCH during these partial PDCCH periods while onDurationTimer is running.
+    >
+    > ***R2-1914475*** (***meeting R2-2000009***)
+    > **onDurationTimer**
+    >> All companies agreed that since this timer may not always be aligned to a PDCCH period due to drx-StartOffset partial search spaces should be supported for this timer. 3 companies commented that additional clarification may needed as to how monitoring and scheduling should work for partial search spaces with this timer.
+    >>> Observation 1: Clarification is needed to the MAC specification to capture expected behaviour when onDurationTimer encompasses partial search spaces.
+    >>> Proposal 1: From RAN2 point of view, partial search spaces are supported for onDurationTimer in NB-IoT.
+    >>> Proposal 2: Behaviour when the NW can schedule the configured number of PDCCH candidates in either the starting partial search space or the ending partial search space to also be captured in the MAC specification.
 
 ### 20220304
 *   debug dump flash log on branch 3.1
