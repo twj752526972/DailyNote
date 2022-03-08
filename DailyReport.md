@@ -403,3 +403,13 @@
     > timeout_value需要设成4 hour，原本3 hour来不及跑完
 *   协助勇哥抓branch 2.0的talog
     > at^setlog=1需要打开
+
+### 20220307
+*   trace jira issue [NBIOTCOPER-390](https://jira.realtek.com/browse/NBIOTCOPER-390)
+    > 漏解DCI N1
+*   Assert：vphy_actionlist.c 373 when running 22.4.2 after ENABLE_SR_CONFIG is true
+    > fix by branch mainline_rel15 d8a9fced
+*   git rewrite history (Doing)
+*   协助Ted升级CMW500
+    > 36.523-2的table中有UE feature vs GCF test case
+    ![36.523-2_Table](36.523-2_Table.png)
