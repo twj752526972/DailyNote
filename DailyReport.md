@@ -413,3 +413,52 @@
 *   协助Ted升级CMW500
     > 36.523-2的table中有UE feature vs GCF test case
     ![36.523-2_Table](36.523-2_Table.png)
+
+### 20220308
+*   trace jira issue [NBIOTCOPER-2853](https://jira.realtek.com/browse/NBIOTCOPER-2853)
+    > 1.SI解到112次还没解成功，max iteration count预留的是128，(根据当时SNR 在-13dB左右求得的)
+    >> a.9406这个earfcn，402比57的SNR要好，但是cell search看到的是57好，所以报给RRC
+    >> b.当前这个scenario，后期或许可以通过SI early terminate，out of sync做一些解套(RRC那边無法透過s criteria解套)
+    >
+    > 2.此外发现，单独在学姐那台PC跑parser的脚本，会遇到如下问题：./rrc_diag.sh: line 3203: *10: syntax error: operand expected (error token is "*10")
+    >> owen将.so重新移除之后遇到的问题和下述3.一样
+    >
+    > 3.在local电脑跑rrc_diag.sh会报错：
+    > tshark: Some fields aren't valid: primitive.Message_t.MSG_LTE_PHYRRC_FIND_CELL_CNF_t.cellResult.nrsSnr primitive.Message_t.MSG_LTE_OSPEMM_TIMER_EXPIRY_t.u32TimerMsgType
+    >> a.大神单独执行tshark -r sanity.talog -Y "frame.number == 2843" -V是可以show出来cellResult.nrsSnr
+    >> b.primitive.Message_t.MSG_LTE_**PHYRRC**_FIND_CELL_CNF_t.cellResult.nrsSnr vs primitive.Message_t.MSG_LTE_**PHYARRC**_FIND_CELL_CNF_t.cellResult.nrsSnr
+    >> c.primitive.Message_t.MSG_LTE_**OSPDC**_TIMER_EXPIRY_t.u32TimerMsgType vs primitive.Message_t.MSG_LTE_**OSPATM**_TIMER_EXPIRY_t.u32TimerMsgType
+    >> d.fieldAs的#14-31数目不可变，否则会烂掉
+*   git rewrite history (Done)
+    > 修改权限，并且push时加上：git push --force
+    ![git_rewrite_history](git_rewrite_history.png)
+*   协助harris build tracker image
+
+### 20220309
+*   协助杨影build titan source code
+    > 没有安装asn1c-rtk
+*   确认codegen(wireshark-non-static)的问题
+    > primitive.Message_t.MSG_LTE_**OSPDC**_TIMER_EXPIRY_t.u32TimerMsgType vs primitive.Message_t.MSG_LTE_**OSPEMM**_TIMER_EXPIRY_t.u32TimerMsgType
+*   协助harris build tracker image
+    > 重新生成id_rsa.pub，并将其放在gerrit user为manda_tang的SSH Public Keys那边
+*   trace the commit about non-anchor feature
+*   了解温补PPT
+
+### 20220310
+*   trace jira issue [NBIOTCOPER-2857](https://jira.realtek.com/browse/NBIOTCOPER-2857)
+*   温补report by ethan_xu
+*   跟jimmy学长了解L23搬到KM4的相关事宜
+    ```sh
+            RRCPHY message                   L1C message
+    RRC <--------------------> RRC ADAPT <-----------------> PHY
+    ```
+    > 現在 RRC ADAPT 執行 LNB_xxxx()，LNB_xxxx() 裡面會打包成 L1C message 用 freertos api 送給 L1C task，L1C task 收到 L1C message，解讀 osp header 來判斷該執行哪一個 handler function
+    > RRC ADAPT 移到 KM4 時，可能會這樣改：RRC ADAPT 執行 LNB_xxxx()，LNB_xxxx() 裡面會打包成 L1C message 用 Osp_Send_Msg 送給 L1C task，Osp_Send_Msg 就能穿越 apcc
+    > 改變 L1C message 格式，的確就是改成 osp header
+
+### 20220311
+*   DSP移除L23 build
+    > An Introduction to Build/Option System by JY(20/55)
+*   整理mail：关于ID_ADP_MonitorInfo中eventRecord栏位显示不对的问题
+    > 1.apt package cdex更新到1.7版本
+    > 2.database请使用modem SDK-release-v31:96a36fa之后生成的

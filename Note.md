@@ -52,4 +52,41 @@
 *   [Redundancy Version in 5G](https://devopedia.org/5g-nr-hybrid-arq)
 *   [Why rv’s decoding is done as 0,2,3 1?](http://telcosought.com/4g-ran/harq-rvs-with-pdsch-channel-processing-in-lte/)
 
-
+### 20220311
+##### wireshark static related ----By JY
+*   Part 1
+    > alignment的問題就是做錯了，array element alignment應該是尊重field的offset，在local做
+    舉個例子
+    struct _attribute_((packed)){u8 c0;struct {    u32 i1;    u8 c1;} s[4];} sss;
+    如果沒有packed，sss.s[0].i1應該從offset 4開始，有packed就是offset 1
+    sss.s[1]沒有packed就是offset 12，有packed時sss.s[1]....答案是9
+    因為packed只有外曾有內層沒有，然後之前只顧到內層，沒顧到外層
+    直接把s[0]對著整體的offset做alignment，也就是alignment是4，這沒錯，但不是去把現在的global offset 1做align跳到4，是從global offset 1開始，讀了s[0]後加5變成global offset 6，然後align成9 ((9-1)%4==0)
+    簡而言之就是alignment要是local的，不是global的
+*   Part 2
+    > 那個TIMER_EXPIRY的問題是有個觀念從一開始就錯了，之前cdex的type system是設法不重複，不同途徑參考到同一個type時，就會找同一份，Wireshark要的是徹底發散的tree，他們都refer同一個東西，所以cdex那邊會收斂回一個點，這聽起來應該make sense，但就不是wireshark要的，因為那個filter走不同路到同一個點，要呈現不同的樣子
+    > 
+    > **Q：** 为什么(primitive.Message_t.MsgType == MSG_ID_LTE_OSPDC_TIMER_EXPIRY) 就没问题but -e primitive.Message_t.MSG_LTE_OSPATM_TIMER_EXPIRY_t.u32TimerMsgType 就需要这样，就是从struct里挑field的时候，这个问题就显现出来了，但是只要不detail到field就没事
+    **A：** 第一個不靠type，那個是enum，message-type的enum才是個type，這enum type裡頭的東西一個都不會少，可是後面經過一個路徑是MSG_LTE_OSPXX_TIMER_EXPIRY_t，這是type，
+    libcdex在處理時，第一個處理到這type的會留下記錄，
+    這處理的過程包括跟wireshark註冊display string，
+    比方第一個經過的是OSPATM_XX，有去留下紀錄，這type也記得了那個display filter string，
+    之後遇到OSPDC_XX在解的時候，因為循著type的路徑走過來，會走到跟OSPATM_XX同一個點，
+    就去用了他註冊的filter string，
+    所有實際上是這type的都會用同一個filter string，
+    比方你之前說codegen plugin會變成是另一個OSPXX_XX，那個純粹是先經過的typedef不一樣，
+    但一樣是第一個踩過去之後後面就會再重複處理，
+    但原先不重複的tree是所有cdex功能共用的，而且會重複太肥了，
+    所以得再旁邊再種一顆，兩顆中間做適當的橋樑
+*   Part 3:
+    > 至於3.1的那個問題就真的只是手滑了，
+    log_warning("field '%s' contains unsupported character");
+    這寫在檢查per-packet field specification時
+    有奇怪字眼時會報錯
+    因為除了master之外都有奇怪字眼
+    (主要是那個xx.yy.zz的".")
+    本來warning沒關係
+    但那個%s後面沒給東西，就變成random crash
+    就看stack裡面剛好是什麼內容
+    所以，把那個帶著unsupported character的描述拿掉不會觸發這個問題
+    master就不會，3.1就會被警告，但警告的人自己被口水噎到就掛了
