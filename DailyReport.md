@@ -498,6 +498,7 @@
     >> ![build_error_disable_USIM_task](build_error_disable_USIM_task.png)
     > 
     > 2.和jimmy学长实作确认方向
+    >> 确实是改动configure.ac (L23的code不会移到cooper_sdk文件夹，就像APP/AMIF, ap_cc.c 沒有移到 cooper_sdk 資料夾去)
 *   commit R15 feature to branch_rel15：EDT and Fmt2 parameter
 
 ### 20220316
