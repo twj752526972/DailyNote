@@ -90,3 +90,52 @@
     就看stack裡面剛好是什麼內容
     所以，把那個帶著unsupported character的描述拿掉不會觸發這個問題
     master就不會，3.1就會被警告，但警告的人自己被口水噎到就掛了
+
+### 20220316
+##### 在makefile里新增指令 $(info xxx=$(xxx)) ----By Dennis
+*   通过打印AM_CPPFLAGS，就可以得知-Wall有没有打开
+
+### 20220318
+##### CPU_CEVAX1 便指定了使用的 compiler 為 ceva 的 ----By Jimmy
+*   configure 時選擇了 TARGET=TARGET_COOPER
+configure.ac 讓 TARGET_COOPER ⇒ CPU=CPU_CEVAX1，configure 完成，make 時就只會用 ceva compiler
+    ```sh
+    AS_CASE([$TARGET],
+        [TARGET_LM3S6965EVB], [CPU=CPU_ARMCM3],
+        [TARGET_LOTUS_L1], [CPU=CPU_RX42X1],
+        [TARGET_LOTUS_L23*], [CPU=CPU_RX42X1
+        CFLAGS+=" -mlong-calls"],
+        [TARGET_COOPER], [CPU=CPU_CEVAX1
+                            TAPEOUT_NO=2
+    [CPU_CEVAX1], [HOST_EXPECTED=cevax # FXIME: Specify a sane host-triple
+        AS_IF([test x$TAPEOUT_NO = x1],
+                [RTL_VERSION="1.3.1"],
+                [RTL_VERSION="1.4.0"])
+        TARGET_FLAGS="-TARG:arch=cevax1 -mrtl-version-${RTL_VERSION} -CG:SPU_FP_num=0 -Wa,-xtend=XtendSimulator"
+        CFLAGS+=" ${TARGET_FLAGS} -mquiet -Wa,-quiet,-noLst"
+        CCASFLAGS+=" ${TARGET_FLAGS} -mquiet	-Wa,-quiet,-noLst -Wa,-p -Wa,-p\\\\,-d\\\\,MAX_FFT=0x100"
+        AS_IF([test x$TAPEOUT_NO = x1],
+                [RTL_LIB_PATH="rtl1_3_1"],
+                [RTL_LIB_PATH="rtl1_4_0"])
+        AC_SUBST([RTL_LIB_PATH], [${RTL_LIB_PATH}])
+        MACRO_DEFINE([_SOC_TO${TAPEOUT_NO}])
+        ],
+    ```
+
+##### C.tom (C Token Macros)里面可以将__cdex增加进去，这样source insight就可以认得struct ----By Hendry
+```sh
+typedef struct __cdex(
+      "<dissector field='u8Data' protocol='lte_rrc.dl_dcch.nb' cond_field='u8RbId'>"
+      "  <map value='0' protocol='lte_rrc.dl_ccch.nb'/>"
+      "</dissector>") MSG_PDCPRRC_DataInd_s
+{
+    PLAT_MSGHEAD struMsgHead;
+    u8  u8RbId;
+    u8  u8CountLow8Bit;
+    u16 u16DataLen;
+    u32 u32RequireRrcCheck;
+    u8  u8Data[];  /* MAX_SRB_SDU_LEN */
+} MSG_LTE_PDCPRRC_DATA_IND_t;
+```
+
+##### callbox可以write cell log去存CMW500的log(需要在run起来结束之后)，也可以设定AGWN去降SNR(NRS - AWGN = -91 - (-85) = -6)
