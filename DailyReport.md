@@ -462,3 +462,99 @@
 *   整理mail：关于ID_ADP_MonitorInfo中eventRecord栏位显示不对的问题
     > 1.apt package cdex更新到1.7版本
     > 2.database请使用modem SDK-release-v31:96a36fa之后生成的
+
+### 20220314
+*   DSP移除L23 build
+    > An Introduction to Build/Option System by JY(55/55)
+*   L1C bi-weekly meeting
+*   和casey trace关于MAC选择non-anchor carrier nprach resource
+    > sib22中的配置 UL carrier 数 != Nprach resource数（NPRACH_ParametersList）如果 UL carrier 个数 = 5， Nprach resource 个 数=4 (对应到code里： u8AvailCarrierIndex 取值范围 1，2，3，4)
+    UL carrier index = 1，2，3，4，5nprach resource 存在于UL carrier index上 1，2，4，5
+    假如random之后，得到的u8AvailCarrierIndex =3，
+    这时候进入for循环做完 最终得到的u8CarrierIndex = 3，但预期应该要是4才对
+    只要 random之后选择的UL carrier index对应的前一个carrier index没有nprach resource，就会出现上述问题
+    相当于少loop一次，u8CarrierIndex少加了1
+    ```sh
+    diff --git a/L23/MAC/NBIOT/Source/mac_ra.c b/L23/MAC/NBIOT/Source/mac_ra.c
+    index 3d6967d13..11a88ce32 100644
+    --- a/L23/MAC/NBIOT/Source/mac_ra.c
+    +++ b/L23/MAC/NBIOT/Source/mac_ra.c
+    @@ -185,8 +185,8 @@ void MAC_RaResourceSelect(MSG_LTE_MACAPHY_PREAMBLE_SEND_REQ_t * pstrucSelectResu
+    if (u8AvailCarrierIndex > 0)
+    {
+    - for (pstruUlConfigCommon = strucInitCfgInfo->ulConfigCommonList, pstrucMacEntity->strucRaPara.u8CarrierIndex = 1;
+    - u8AvailCarrierIndex > 1;
+    + for (pstruUlConfigCommon = strucInitCfgInfo->ulConfigCommonList, pstrucMacEntity->strucRaPara.u8CarrierIndex = 0;
+    + u8AvailCarrierIndex > 0;
+    pstruUlConfigCommon = UL_ConfigCommonList_NEXT(pstruUlConfigCommon), pstrucMacEntity->strucRaPara.u8CarrierIndex++
+    )
+    {
+    ```
+
+### 20220315
+*   DSP移除L23 build
+    > 1.试着新增SWCFG去build(监狱外用--enable-cooper-phy-lib)
+    >> 监狱里有遇到问题，关掉USIM task会报错
+    >> ![build_error_disable_USIM_task](build_error_disable_USIM_task.png)
+    > 
+    > 2.和jimmy学长实作确认方向
+*   commit R15 feature to branch_rel15：EDT and Fmt2 parameter
+
+### 20220316
+*   和BB sync l1cPhyNpdschInit interface是否需要调整：暂时不需要改动
+    > numSubframe == 16 && infoType == L1_NPDSCH_CARRY_BCCH 就等价于 additional SIB1的情况
+    普通 SIB1 numSubframe == 8 && infoType == L1_NPDSCH_CARRY_BCCH
+    普通 SI   numSubframe == 2 或是 8  && infoType == L1_NPDSCH_CARRY_BCCH
+    普通 NPDSCH numSubframe ==  任何值 && infoType == L1_NPDSCH_NOT_CARRY_BCCH
+    相当于 只要新增一个条件 numSubframe == 16 就可以判断出 additional SIB1了
+*   commit R15 feature to branch_rel15：additional SIB1 Transmission
+*   fix compile error in branch_rel15
+    > ![compiler_error_branch_rel15](compiler_error_branch_rel15.png)
+    > dennis为将#include "osp/osp_def.h"从adp_ps_interface.h移除了，导致l1c_primitive_handle.c没有包FreeRTOS.h而报错
+
+### 20220317
+*   DSP移除L23 build
+    > 1.a) 跟jimmy学长sync关于是否要移除USIM task + driver，追查
+    選擇不要打開ENABLE_SIMC_TASK--->因為ENABLE_SIMC_TASK 根本不去 build hal_dsp_simc_new.c
+    但在./configure_COOPER_xxx时，加了USIM == USIMC，
+    power_clock 那边有判断条件：
+    ![compile_flag_1](compile_flag_1.png)
+    把这个改成了条件是 ENABLE_SIMC_TASK ，虽然是能过 ，但是我觉得怪怪的
+    假如没有ENABLE_SIMC_TASK ，在./configure_COOPER_xxx时，能直接写成USIM == USIM_SIMULATOR吗(直觉好像是不能)
+    同步都改成用ENABLE_SIMC_TASK 包的话，与此同时下面也跑不到power_SIM_LDO_switch_on了，这应该会有问题吧？
+    ![compile_flag_2](compile_flag_2.png)
+    > 1.b) 结案在
+    因為 ENABLE_SIMC_TASK 與 USIM_SIMC 的關係，在 configure.ac 裡已經描述了
+    但，現在特別去改變它
+    結果出現這樣的 error
+    追下去也許會得到這樣的敍述： 在 TARGET_COOPER 裡, USIM_SIMC 就是不能沒有 SIMC_TASK
+    為什麼你一定不要這樣
+    規則就寫好了
+    > 
+    > 2.将USIM留在DSP，会遇到跟L3_COMMON扯上点关系(USIM 会去调用 L3_Send_Msg)
+
+### 20220318
+*   [ ] DSP移除L23 build
+    *   将USIM留在DSP，会遇到跟L3_COMMON扯上点关系(USIM 会去调用 L3_Send_Msg)
+        *   [x] 临时workaround掉
+    *   打开ROHC_RTK，会报错，PDCP会调用ceva security lib
+        *   [x] 勇哥说肯定会用纯软的方式实现security
+        *   [x] pdcp.lib 是 KM4 build, rohc.lib 是 CEVA build，兩個 lib 不會合的
+    *   dennis 有提醒在移除了L23 lib后，那么L23曾经使用的Heap需要确认去向
+
+*   和dennis sync关于COREID中的含义，下列用法类似于enum：
+    > ```sh
+    > [MULTICORE_AP_L123],
+    >    [CHOICE_GROUP_START([COREID], [COREID_L123])
+    >        DEFINE_CHOICE_NO_COND([COREID_L123])
+    >        DEFINE_CHOICE_NO_COND([COREID_L23], [COREID_L123])
+    >        DEFINE_CHOICE_NO_COND([COREID_L23_MAIN], [COREID_L123])
+    >        DEFINE_CHOICE_NO_COND([COREID_L23_NUM])
+    >        DEFINE_CHOICE_NO_COND([COREID_L123_NUM], [COREID_L23_NUM])
+    >        DEFINE_CHOICE_NO_COND([COREID_NUM], [COREID_L123_NUM])
+    >        CHOICE_GROUP_END([COREID])])
+    > ```
+    > 可能需要找jimmy学长确认
+    > ```sh
+    > struct sfifo_rec_ptr_2 *g_struPlatCommFifos[PLAT_COMMFIFO_NUM][PLAT_COMMFIFO_NUM] = {{NULL}};
+    > ```
