@@ -497,7 +497,7 @@
     >> 监狱里有遇到问题，关掉USIM task会报错
     >> ![build_error_disable_USIM_task](build_error_disable_USIM_task.png)
     > 
-    > 2.和jimmy学长实作确认方向
+    > 2.和jimmy学长确认实作方向
     >> 确实是改动configure.ac (L23的code不会移到cooper_sdk文件夹，就像APP/AMIF, ap_cc.c 沒有移到 cooper_sdk 資料夾去)
 *   commit R15 feature to branch_rel15：EDT and Fmt2 parameter
 
@@ -559,3 +559,79 @@
     > ```sh
     > struct sfifo_rec_ptr_2 *g_struPlatCommFifos[PLAT_COMMFIFO_NUM][PLAT_COMMFIFO_NUM] = {{NULL}};
     > ```
+
+### 20220321
+*   [ ] DSP移除L23 build
+    *   ENABLE_NVM 可以不用
+    *   SERIAL_PORTS="LOG: AT:"，不用 AT
+        > SERIAL_PORTS 應該是讓 configure 產生出一些 macro去影響 PLAT_UART 要弄出幾個 port，其中又有幾個是給 AT 使用的，AT 整個都在 KM4，因此 DSP 不應該需要有個 UART port 是給 AT 用的
+    *   ENABLE_AT_AP，打开，主要是要影響 SFU ID
+        > modem/include/swconfigs/common/lte_tasktype_comm.h
+        KM4 build 也需要看 modem/include/swconfigs/common/lte_tasktype_comm.h
+        兩邊對於 SFU id 才會有共識，inter-core message，MsgType 就包含了 SFU ID，destination, source
+*   [NBIOTCOPER-2866](https://jira.realtek.com/browse/NBIOTCOPER-2866)
+    > 提供由time align task通知SI的 API
+    > 实作API，需要找Casey double review
+*   大概review了一下resource.h中的ENABLE_XXX是否符合预期，待完成
+
+### 20220322
+*   [NBIOTCOPER-2866](https://jira.realtek.com/browse/NBIOTCOPER-2866)
+    > 找Casey double review patch，需要考虑当处于SI_Proc的state时，突然停掉SI后，pSiInternal里的相关变量是否有重新reset
+*   PK 动员大会 by Paul
+*   找Dennis sync如何解决USIM task会用到L3_SendMsg和L3_Alloc_Msg_Impl的问题
+    > 1.commit error是因为包macro时写成了
+    > ```sh
+    > #ifdef SWCFG_PHY_ONLY
+    > ```
+    > 2.决定在l3_com.h中通过macro enable这两个function，会生成libl3common.lib
+*   协助Harris看branch v3.1的log，发现Rmax配置为128
+
+### 20220323
+*   找Dennis sync如何解决USIM task会用到L3_SendMsg和L3_Alloc_Msg_Impl的问题
+    > 1.通过#error去测试是否真的有包到这两个function
+    > 2.新定义ENABLE_L3_COMMON，表示当ENABLE_L3和ENABLE_SIMC_TASK都打开时，会去生成libl3common.lib
+    > 3.在../configure.LM3S6965EVB_APP_COOPER_LOG_TA LOG=LOG_TA TA_CORE=TA_MULTICORE --disable-dependency-tracking时，make不会报错，但生成cdex会遇到error，需要将l3_com.h里的structure或typedef释放出来，因为modem.base/tools/cdex/client/primitive/target.h会用到L3_PSM_Status
+
+### 20220324
+*   找Dennis sync如何解决USIM task会用到L3_SendMsg和L3_Alloc_Msg_Impl的问题
+    > 1-a).daily test error (../configure.WIN32_L1C  --disable-dependency-tracking)，追查发现是因为TARGET_WIN32:USIM_SIMC会开启ENABLE_SIMC_TASK，而TARGET_WIN32在不属于SWCFG_L23_UT时，默认都打开了USIM_SIMC
+    > ```sh
+    > ../../L23/L3COMMON/Source/l3_com.c: In function 'L3_Alloc_Msg_Impl':
+    > ../../L23/L3COMMON/Source/l3_com.c:1561:9: error: 'NB_POOLID_MSG' undeclared > (first use in this function)
+    > 1561  | NB_POOLID_MSG, MsgSize - sizeof(OSP_STRU_MSGHEAD), MsgType, > failHook);
+    >       | ^~~~~~~~~~~~~
+    > ```
+    > 1-b).使用命令去测试daily test：tools/cmgk_scripts/build_test --build-list tools/cmgk_scripts/daily_test.json ^WIN32.*
+    > 2.精简configure.COOPER_MULCOR_APL23_PHY_LOG_TA的内容
+    > 3.SWCFG_PHY_ONLY不应该出现在Makefile.am里，这违背了設計的原意
+    >> SWCFG 和其他設定，決定出哪些模組要，哪些模組不要
+    >>而不是在各個模組的 Makefile.am 去判斷 SWCFG，這樣會列舉不完
+    >>當選擇了 SWCFG_PHY_ONLY configure 會決定不需要 ENABLE_UAIL23/NAS/UAI/Makefile.am 裡直接都變成空的了
+    >>```sh
+    >>#=========================================================================>>======
+    >># Automake variables
+    >>#=========================================================================>>======
+    >>if ENABLE_UAI
+    >>noinst_LIBRARIES += libuai.alibuai_a_CPPFLAGS = \
+    >>-I$(srcdir)/ADP/INC \...
+    >>```
+*   jenkins 的 daily_cooper test 能夠 release 出 SWCFG_PHY_ONLY 的 build，找JY申请权限，commit时只需要直接git push
+*   可以確認一下幾個 L23 task 的 entry function，應該都不在了，fw.bin 變小多少
+    > cooper_mulcore_apl23_phy_build.tar.gz 裡面應該有打包進 fw.bin
+        也可以直接和 cooper_release.tar.gz 的 fw.bin 來比檔案大小，
+        它會老老實實地被寫進 flash，它大，在flash 裡佔地就大
+        **before：1206KB，after：443KB**
+*   Dennis的Req中：处理AT那边L3_SendMsg的事情
+    > 发现ATM那边使用的msg最早就是ATM_SendReq和ATM_Alloc_Msg
+*   Sam提供的资讯，128k(PTCM)，256k(ITCM)，192k(SRAM)这三个是固定不变的，因为掉电以后，再上电回来，需要从flash中的这三块内容的资讯一一copy到实体上的真正位置(PTCM，ITCM，SRAM)去
+    > ![flash_layout](flash_layout.png)
+
+### 20220325
+*   会需要有一个lte_tasktype_comm.h的中間版本才有機會做測試，可以看到这边的_STUB后缀，
+    > 如果沒有補進那些 _STUB 的 sfu id，也就是接近最終版本的 lte_tasktype_comm.h，
+    "没有移除 L23 的 DSP binary" 與 KM4 對於 sfu id 的認知整個不同，DSP 送到 KM4 的 message，KM4 誤會來者何人，一直 assert
+![lte_tasktype_comm_h](lte_tasktype_comm_h.png)
+*   review [NBIOTCOPER-2866](https://jira.realtek.com/browse/NBIOTCOPER-2866)的talog
+    > align serving cell task在子帧98/1开启；
+    > 98/2去claim resource，调用time align task通知SI的API，SI abort tracking，release SI的resource，不过tracking那边没有release tracking相关的resource，被callback后又切回state claim resource；
+    > 98/3去claim resource，调用time align task通知SI的API，assert，不过因为还没前进到resource manage，所以可以看到state切为了align cfo sto
