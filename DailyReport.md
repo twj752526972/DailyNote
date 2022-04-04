@@ -635,3 +635,173 @@
     > align serving cell task在子帧98/1开启；
     > 98/2去claim resource，调用time align task通知SI的API，SI abort tracking，release SI的resource，不过tracking那边没有release tracking相关的resource，被callback后又切回state claim resource；
     > 98/3去claim resource，调用time align task通知SI的API，assert，不过因为还没前进到resource manage，所以可以看到state切为了align cfo sto
+
+### 20220328
+*   L1C bi-weekly周会
+*   trace L1C的相关修改
+    *   [NBIOTCOPER-2864](https://jira.realtek.com/browse/NBIOTCOPER-2864)
+        > 发生assert的时间点都是RA fail之后且期间DSP有睡到state3再次打TX时，再次打TX时打开APT会polling不到apt_core_bg_ok，于是就发生assert。目前怀疑的问题点是第一次RA fail之后并没有关掉APT，导致第二次需要打开APT时PC_Set(PC_POWER_APT, PC_ON)以及PC_Set(PC_AONSIFC_ISO_APT, PC_ON)都没有重新动作，可能会导致APT开不起来
+        > 
+        > 在release common config時關掉APT，原因如下：
+        1.省電，若非由L1C主動關掉，遇到睡不到light sleep的場景(e.g., 被config DRX 1.28s但某次建連失敗)可能會多耗電
+        2.原先code裡在release common config時L1C有記錄要關(或預期可能會被關)，但實際上沒關，修正此不一致性
+    *   [NBIOTCOPER-2868](https://jira.realtek.com/browse/NBIOTCOPER-2868)
+        > CSS1下重複schedule NPDCCH而assert
+        (673,307,0) 因為遇到DL gap，因此預先往後排NPDCCH(0) at (673,320,1)
+        (673,307,2) 解到DCI_N2
+        (673,307,3) schedule NPDSCH at (673,320,1)
+        (673,307,4) NPDCCH(0) resource conflict而重排NPDCCH(1)
+        (673,320,2) Decode NPDSCH
+        (673,320,3) schedule NPDCCH(2)
+        不預期會同時存在兩筆NPDCCH scheduling，assert的場景要避免排NPDCCH(1)
+        因此會調整成CSS1 resource conflict時，會先檢查是否已schedule下一筆RX，scheduleList是空的情況才去排下一筆RX
+
+### 20220329
+*   trace L1C的相关修改
+    *   DL-Bitmap on non-anchor carrier
+        > string:"1011100011" (small endian 高位放在高地址)
+        > [1]: 00000010
+        > [0]: 11100011
+        > ```sh
+        > pDlCarrConfigR14_OR->DlBitmapNonAnchR14.usSubframePattern10 = (unsigned short)(DL_CarrierConfigCommon_DL_Bitmap(dl_CarrierConfig, subframePattern10)[1] << 8) + DL_CarrierConfigCommon_DL_Bitmap(dl_CarrierConfig, subframePattern10)[0];
+        > ```
+    *   NRS on Non-anchor Carriers
+        > fix find NRS opportunity for CSS1/CSS2 non-anchor
+        1.when monitor CSS1/CSS2 NPDCCH,shall be NB-IoT DL subframe
+        2.for CSS2 NPDSCH and others, need consider #0, #4, #9 and DL subframe
+        > ![CSS1_CSS2_dl_subframe](CSS1_CSS2_dl_subframe.png)
+    *   L1C_CONVERGENCE_MODE_PAGING：表示是CSS1 and anchor carrier，会进行NSSS和NRS的combine；如果是L1C_CONVERGENCE_MODE_NORMAL，表示是CSS1 and non-anchor carrier，此时会有uncertainNrs
+*   用[daily_cooper_165](http://172.26.5.130:8080/job/SDN/job/modem/job/daily_cooper/165/)的bin与cooper_sdk branch l23ap_dev去合，生成的image有问题，进监狱重新build，会跑出跟Ted一样的结果：
+    > 1.发生MPU exception是因为 Plat_ChecksumProtect--->Plat_AreaChecksumDerive摸到了一个非法的address：0x200c8000,
+    通过查看target.lin是可以看到 
+    SRAM1 [0x200c0000 - 0x200c7fff] ; 32KB
+    sram_l123_data [d:200c0000, d:200c7fff] external; 32KB
+    已知checksum检查的模块分为3部分：
+    从target.lin也可以看到start和end的address
+    RETENTION_BSS 0x200C0000~0x200C5574
+    RETENTION_DATA 0x200C5AAC~0x200C5AC8
+    SHARE_DSP 0x2008249C~0x20082FC5
+    > ```sh
+    > ASSERT: Data MPU Exception : Address = 0x200c8000, Status = 0x00000079
+    > ASSERT: Exception at @0x200a1dce@(Plat_AreaChecksumDerive), SP at >   0x00019e1c, FP at 0x00019e94\n
+    > ASSERT: int_p_retreg=@0x200a1d64@(Plat_AreaChecksumDerive), >     int_p_retreg_temp=@0x200a1e42@(Plat_ChecksumProtect)\n
+    > ```
+    > shared_retention_bss 是 L23 在 DSP 時放 retention data 的地方，既然 L23 在 DSP 已經消失，就不會有任何 variable 放在這個 section 裡，shared_retention_bss 在 shared memory 裡，因為 DSP retention memory 不夠用，而 KM4 還夠，就將 L23 的 retention data 放在 shared memory，KM4 依照睡眠的活動會將 shared_retention_bss 的資料備份在自己的 retention memory 裡，虽然猜了是 SHARE_DSP 造成超出 sram_l123_data 的邊界，畢竟這部分隨著 L23 AP 會有變化，而實際上 shared_retention_bss 在 shared memory，與 sram_l123_data 位址是有一大段差距，所以兇手可能不是 SHARE_DSP region
+    > 
+    > 2.在clone cooper_sdk底下的modem这个submodule时，需要在~/.ssh/config中写入
+    > ```sh
+    > Host sdlc-gerrit
+    > HostName cn3wd7.sdlc.rd.realtek.com
+    > User manda.tang
+    > Port 29418
+    > 
+    > Host "cn3wd7.sdlc.rd.realtek.com"
+    > HostName cn3wd7.sdlc.rd.realtek.com
+    > User manda.tang
+    > Port 29418
+    > 
+    > 然后在terminal端做：
+    > git submodule sync
+    > git submodule update
+    > ```
+    > 
+    > 3.在将fw.bin与cooper_sdk branch l23ap_dev去合，生成image时，也可以写好路径MODEM_DIR=/home/manda/Code/SDN/modem.base，但看起来build出来的image拿去跑talog遇到的现象和使用submodule的image跑出来的talog现象不一样
+
+### 20220330
+*   Debug Data MPU Exception with Ted's patch
+    > 1.看起來這個 region 是從 0x200c5aac 到 0x200c5ac5，大小是 0x200c5ac5-0x200c5aac=25 bytes，分成8份：4+4+4+4+4+4+1=25，最后一段(第8个block)的length为(-3)，由于RQ_RecordBlock这个structure中UINT32 length;所以-3会被解释成一个很大的正数，造成address越界，而RETENTION_DATA 之所以会变这么小，
+    _retention_data_checksum_start symbol
+    l23_data align 0x8
+    heap_data align 0x8
+    power_data align 0x8
+    os_timer_data align 0x8
+    target2pc_data align 0x8
+    _retention_data_checksum_end symbol
+    l23_data 消失了，os_timer_data 說不定也沒了
+    > 解法：可以選擇固定 block 大小，然後 block 數量隨著 region 而變
+    > 2.需要暂时修改configure.ac，L23 AP先不要 ENABLE_RETENTION_CHECKSUM
+    > 3.基于上述2.，跑出来的log会有MMC read file 0x00000026 from NVM fail\n，应该是 nvm_api / plat_fsm / plat_fsm_nvram / nvram 沒有接好
+*   [NBIOTCOPER-2880](https://jira.realtek.com/browse/NBIOTCOPER-2880)
+    > cell id 115下发的sib5里的dl carrier带的内容和正常的不太一样：
+    700622 8395.170562 8395433 2 SystemInformation-NB [ SIB2 SIB3 SIB5 ]
+    InterFreqCarrierFreqInfo-NB-r13
+    dl-CarrierFreq-r13
+    <font color='red'> carrierFreq-r13: 0
+    carrierFreqOffset-r13: v-0dot5 (10) </font>
+    q-RxLevMin-r13: -120dBm (-60)
+    multiBandInfoList-r13: 1 item
+    Item 0
+    <font color='red'> MultiBandInfo-NB-r13
+    freqBandIndicator-r13: 8 </font>
+
+### 20220331
+*   [NBIOTCOPER-2880](https://jira.realtek.com/browse/NBIOTCOPER-2880)
+    > 结合GCF case 22.2.10，理清multiBandInfoList和MFBI的关系：
+    > 在cell(3684,115)收到的sib5, dl-CarrierFreq-r13帶的carrierFreq-r13為0, earfcn 0對應到band 1, 因為UE不支持band 1, 加上sib5有帶MultiBandInfo-NB-r13, 其中freqBandIndicator-r13 為8, 照spec, UE支持multiband功能, 嘗試在band 8上找到與earfcn 0的頻率overlap的earfcn.
+    band 8與band 1實際在頻率上並沒有overlap, RRC在判定沒有找到對應的earfcn後, 處理有誤, 仍把earfcn 0帶下去;
+    > 
+    > 22.2.10的测试要求是：sib1中会带FreqBandIndicator-NB-r13
+    An overlapping not supported frequency band MFBI under test(px_OverlappingNotSupportedFrequencyBandMFBI)，为band 26；
+    multiBandInfoList-r13中会带freqBandIndicator –r13 An overlapping Band
+    under test(px_MFBI_FrequencyBand)，为band 5；
+    因為UE不支持band 26, 加上sib5有帶MultiBandInfo-NB-r13, 其中freqBandIndicator-r13 為5, 照spec, UE支持multiband功能, 嘗試在band 5上找到與earfcn 9039 or 8865的頻率overlap的earfcn，找到對應的earfcn 2649 or 2475後，帶下去给PHY，进行小区重选
+*   [NBIOTCOPER-2884](https://jira.realtek.com/browse/NBIOTCOPER-2884)
+*   trace log，对应找出MSG_ID_LTE_PHYMMC_RFFE_INFO_CNF的msgId，并整理L23搬到KM4后的SFU ID，如下：
+    > #ifdef ENABLE_L3_AP
+    /* L3 */
+    LTE_TASK_NAS_EMM,0x10  16
+    LTE_TASK_NAS_MMC,0x11  17
+    LTE_TASK_NAS_ESM,0x12, 18
+    LTE_TASK_NAS_UAI,0x13, 19
+    LTE_TASK_RRC_BC, 0x14, 20	
+    LTE_TASK_RRC_DC, 0x15, 21
+    LTE_TASK_RRC_GC, 0x16, 22
+    LTE_TASK_RRC_MC, 0x17, 23
+    LTE_TASK_ADP,	 0x18, 24
+    LTE_TASK_LPP,    0x19, 25
+    LTE_TASK_ADPU,   0x1a, 26
+    LTE_TASK_SMS_TL, 0x1b, 27
+    LTE_TASK_SMS_RL, 0x1c, 28
+    LTE_TASK_SMS_CM, 0x1d, 29
+    LTE_TASK_NAS_RDS,0x1e, 30
+    #endif /* #ifdef ENABLE_L3_AP */
+    > 
+    > #ifdef ENABLE_L2_AP
+        LTE_TASK_PDCP,	0x1f, 31
+        LTE_TASK_RLC,	0x20, 32
+        LTE_TASK_MAC,   0x21, 33
+    #endif /* #ifdef ENABLE_L2_AP */
+
+### 20220401
+*   trace L1C的相关修改
+    *   [NBIOTCOPER-2876](https://jira.realtek.com/browse/NBIOTCOPER-2876)
+        > tracking那边没再做l1cSetRxPreprocessConfig，但RX这边还是有setting decode info，导致的assert；
+        RX这边看起來是遇到DL gap，有先預排RX，但在DL gap前有解到DCI，因此也有往後排RX，需調整schedule flow，先移除預排的RX，再排下一筆
+    *   [NBIOTCOPER-2878](https://jira.realtek.com/browse/NBIOTCOPER-2878)
+        > BCH data pointer没有free掉，修改成在解完mib送给上层后进行free
+*   协助Sam看拔掉32k oscillator的talog
+    > 调整tracking CS起来的时间间隔，从5.12s缩短为1.28s，但看起来还是没太大效果，sto残余量不少，SNR一路狂掉，但有时候收完background SIB1，performance会好一些
+*   试着用manda.tang登陆SDN，并且配置ssh remote for vscode，无法成功；与此同时，Gerrit因为没开通权限，所以也无法成功
+
+### 20220402
+*   协助Sam看拔掉32k oscillator的talog
+    > 调整tracking CS起来的时间间隔，从5.12s缩短为640ms，遇到的assert与[NBIOTCOPER-2260](https://jira.realtek.com/browse/NBIOTCOPER-2260)类似，拔掉32K xtal 會造成 PSM 時間不對，DSP比预期的时间起来的要晚
+*   [NBIOTCOPER-2881](https://jira.realtek.com/browse/NBIOTCOPER-2881)
+    > 已知Socket will be close and TCP connection not yet setup，需要下AT^CONNABORT，
+    出现bug原因是：tcp connect 因未及时收到SYN ACK判fail，将socket的大部分memory释放掉，所以在socket close时无法判断目前socket所处状态
+    解法是：将trigger AT^CONNABORT的动作，从socket shutdown/close移到connect，不过：下了mqtt connect at指令后，如果tcp层connect ok，但mqtt connect server fail，不会发AT^CONNABORT，但AP端会做FIN/ACK去terminate tcp connection
+*   Cooper QC Test v3.1 from Taipei Dazhi Office WWAN Lab 172.26.11.55 172.17.0.1 的TC 2/3/4 ping fail, 皆是送出ping request後, 網路下發rrc connection release
+    > 原因是所用的ping address 240C::6666无法ping通，owen有修改为2408:4002:1f10::b8，即可PASS
+*   用manda.tang登陆SDN，并且配置ssh remote for vscode，可以成功；目前暂时遗留的问题是trigger test release不成功
+    > 因为无法online下载package，所以暂时是将RSDOMAIN/manda_tang底下的.vscode-server全部内容copy到PANKORE/manda.tang的账户下
+    > ![SDN_release_error](SDN_release_error.png)
+* trace COMMON_CONFIG_V2
+    > 收到上层的L1C_RRC_PRIMITIVE_COMMON_CH_CONFIG_DL_NONANCHOR_REQ后，会将上层的内容copy到local的pRrcPhyCommonConfigCombine的dl non anchor的pointer里面，后续配置时，再从里面捞
+    > ![COMMON_CONFIG_V2](COMMON_CONFIG_V2.png)
+    > ```sh
+    > #ifdef ENABLE_COMMON_CONFIG_V2
+    > extern void LNB_CphyCommonChConfigDlNonAnchorReq(LCPHY_COMMON_CH_CONFIG_DL_NON_ANCHOR_STRU  *pCphyCommonChConfigDlNonAnchorReq);
+    > extern void LNB_CphyCommonChConfigUlNonAnchorReq(LCPHY_COMMON_CH_CONFIG_UL_NON_ANCHOR_STRU  *pCphyCommonChConfigUlNonAnchorReq);
+    > #endif
+    > ```
+

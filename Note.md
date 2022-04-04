@@ -139,3 +139,8 @@ typedef struct __cdex(
 ```
 
 ##### callbox可以write cell log去存CMW500的log(需要在run起来结束之后)，也可以设定AGWN去降SNR(NRS - AWGN = -91 - (-85) = -6)
+
+### 20220329
+##### macro 'ENABLE_CC_AP_L23' ----By Jimmy
+*   在 osp_core_communication.c 裡，ENABLE_CC_AP_L23包起來的部分，可以說是 CC 與 AP_CC 的 handshare，將 "ENABLE_CC_AP_L23" 改名為 "ENABLE_CC_AP"，在 MULTICORE_APL23_L1C 的情況下也會去 ENABLE_CC_AP，這樣一來，至少 CC → APCC 這個方向就成功
+
