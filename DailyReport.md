@@ -805,3 +805,8 @@
     > #endif
     > ```
 
+### 20220406
+*   trace jira [NBIOTCOPER-2887](https://jira.realtek.com/browse/NBIOTCOPER-2887)
+    > simulation code, verify PASS
+*   raise jira [NBIOTCOPER-2889](https://jira.realtek.com/browse/NBIOTCOPER-2889)
+*   raise jira [NBIOTCOPER-2891](https://jira.realtek.com/browse/NBIOTCOPER-2891)
