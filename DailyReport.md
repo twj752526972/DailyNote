@@ -810,3 +810,142 @@
     > simulation code, verify PASS
 *   raise jira [NBIOTCOPER-2889](https://jira.realtek.com/browse/NBIOTCOPER-2889)
 *   raise jira [NBIOTCOPER-2891](https://jira.realtek.com/browse/NBIOTCOPER-2891)
+
+### 20220407
+*   debug jira issue [NBIOTCOPER-2889](https://jira.realtek.com/browse/NBIOTCOPER-2889)
+    > Assert rrc_adapt_ceva.c: 4250 
+*   refine EDT and Format2 parameters in mainline_rel15
+*   tracking CS 之后不release resource，使得L1C不会睡下去，测试拔掉32k oscillator的talog，还是会遇到assert：[NBIOTCOPER-2260](https://jira.realtek.com/browse/NBIOTCOPER-2260)
+
+### 20220408
+*   SDN里用manda.tang去trigger test release不成功，请JY发jira给IT
+*   debug GCF case 22.2.5 with titan (Doing)
+*   revert掉EDT/Format2 parameters的相关改动on branch mainline_rel15
+*   trace talog about L23AP
+    > hang in the common config task
+    > 粗略trace Jimmy/Ted有关L23AP osp_send_msg的相关改动
+
+### 20220411
+*   LNB_BindFunc(component/common/modem/support/plat/ceva/l1c_ps.c)引起的COOPER ASSERT
+    > LNB_CphyCommonChConfigCnf_Bind(NULL) ，或本來就沒人在 Bind，意謂著 RRC ADAPT 並不關心它，当func是NULL时仍呼叫func()，那么code就会跑飞，應該判斷不是 NULL 時才呼叫 func();
+    PS：即使RRC有Bind成LNB_CphyCommonChConfigCnf_Bind(NULL) 那func還是NULL
+*   L1C bi-weekly周会
+
+### 20220412
+*   加log去trace tasks.c: 4080的assert
+    > MAC_AdaptInit 会 create + lock：Osp_Mutex_Lock(g_strucMacAdaptRsrp.lock, OSP_WAIT_FOREVER);MAC_AdaptGetSignalStrengthReq 会 lock：Osp_Mutex_Lock(g_strucMacAdaptRsrp.lock, OSP_WAIT_FOREVER);
+    收到MAC_AdaptGetRsrpInd，会unlock：Osp_Mutex_UnLock(g_strucMacAdaptRsrp.lock);
+*   apply Jimmy的patch，将Mutex改成信号量之后可以前进
+    > pxCurrentTCB = AMIF，收到了L1C丢过来的GET_RSRP_IND ，
+    然后执行LNB_PhyGetRSRPInd_Bind，unlock的pxCurrentTCB 為 AMIF，
+    pxTCB也就是mutex holder為MAC
+    > 查找资料[信号量vs互斥锁](https://www.jianshu.com/p/5852efef0ea8)
+*   和Hendry一起看apply Jimmy的patch后，RA fail的问题
+    > 因为LNB_PhyPsCallback(PHY_PSCB_ID_PHY_GET_ULDATA_REQ, pUlGrantInfo);被mark掉，导致PHY不会跟MAC要data(L23AP image)，原先(normal image)会mark掉是因为怕UL data來不及給下來，所以不經過msg task -> PS callback，直接在L1C task裡面跟L23要UL data，這在之後應該剛好可以用ENABLE_L2/3_AP包起來
+
+### 20220413
+*   narrow down osp_system_msg_queue.c:156 assert
+    > msgType=081a0002,
+    dstTask = 8,
+    SFUTYPE_2_INDEX(dstTask) = 1,
+    taskID = g_struOspSCB[SFUTYPE_2_INDEX(dstTask)].pBasicInfo->u32TaskId;
+    taskID=3259648 > NUM_OF_QUEUES = 11
+*   和Hendry讨论MSG_ID_LTE_ADPUPORT_DATA_NB_IND时，cooper_sdk那边的处理
+    > low_level_init时会去create rx_thread，
+    由于跟mbox 注册了 callback function ，
+    当收到来自dstTask= PORT的msg时，
+    立马调用到 rx_handler，在这里去把msg放到 queue里，
+    然后rx_thread_handler会从queue里fetch出来，进行处理
+
+### 20220414
+*   和Ted讨论关于ENABLE_L3_COMMON，需要理解MODULE_SELECT_DEPEND的含义(看config.log中的结果，只要[ENABLE_L3 ENABLE_SIMC_TASK]中有一个被enable，那么ENABLE_L3_COMMON就被enable，因此DEPEND是代表“或”的意思)
+*   生成patch，主要是handle osp_system_msg_queue.c:156的assert
+    > 跟osp_send_msg注册callback function(之前是跟mbox注册)
+    等到dstTask=PORT || PORTFLOWCTRL 时，就去呼叫，避开osp sfu message那裡懵逼的问题
+*   交叉实验比对Ted的image在CMCC/CT上authentication的行为(PASS)，但也有机率遇到
+
+### 20220415
+*   和勇哥/Jimmy讨论关于osp_send_msg这边用到task_queue的相关改法
+*   Trace modem和cooper两边的function：osp_send_msg
+    > modem/platform下 osp_system_sfu_message.c：里头有l1cOspMsgProcess
+    而component/common/modem/support底下 osp_system_sfu_message.c：里面没有l1cOspMsgProcess，今天的改动却有task_queue这种东西
+    假如以平常在使用的configure来说：
+    发给PHY东西，
+    1)RRC/MAC PHY 是LNB这样的function，
+    而如果是osp的msg，如
+    2-a)同一个core上 MMCPHY_XXX(直接走l1cOspMsgProcess) 或是
+    2-b)cooper那边发过来给PHY的跨core的msg，会经由 component/common/modem/support底下 osp_system_sfu_message.c 底下的 Osp_Send_Msg--->Osp_CC_Send_Msg---->CCSEND_TASK---->跨core---->modem/platform下 osp_system_sfu_message.c底下的Osp_Send_Msg()---->l1cOspMsgProcess
+
+### 20220418
+*   在windows下使用wireshark
+    > debug version的vc-runtime搭配debug版的plugins(wireshark-rtk-ta.windows-1.4.cdex-1.x.debug)
+    > 需要把vcruntime104d.zip的東西倒到c:\windows\system32(主要是會不那麼容易閃退，runtime是從Windows SDK來的，由被用什麼開發環境決定的，跟plugin的版本無關)
+*   在linux下配置WFH(Work From Home)，安装ps-pulse-linux-9.1r11.4-b8575-64-bit-installer.deb
+*   询问JY大神有关于branch mainline_rel15和master的code-line一样的root cause
+    > 雖然code-line的點是一個，但可以是兩個動作先後到達2553143b這個點
+    也就是mainline_rel15是git merge master到了這邊
+    這時master還停在14fbbe5，後面再有一個未知的動作把他帶到同一個點
+    雖然是先後到達，但只要hash一樣，在圖上就一樣
+    不是分岔的路徑
+    本來覺得這個未知的動作是git checkout master然後git reset mainline_rel15之類的
+    後來發現是rebase，rebase的效果某種程度跟cherry-pick一樣
+    正常來說從別的地方摘過來的commit放到這邊hash都會不一樣，因為parent就不一樣
+    Rebase一次摘連續的一串，移植到不同的parent當然整串hash都不一樣
+    所以一開始沒往這邊想
+    神奇的是...這邊摘過來的第一個commit是個merge commit，有兩個parents
+    本來merge commit是apply在mainline_rel15，這是爸爸，媽媽是master
+    然後後來闖禍的rebase，把他重播在master上，也就是媽媽
+    然後爸爸是mainline_rel15
+    好了，內容一樣、commit message一樣、雙親一樣 ==> hash一樣
+    這麼一搞，master也跑到2553143b這個merge commit去了，那就是mainline_rel15的路的路徑
+    整個被帶走..
+    問題都來自，Gerrit想把Angola推錯的revert commit rebase到master上
+    為此他把merge commit和想revert的NAS commit，這兩個本來不存在master的commits，都拿到master上重播
+    播得不但順利，還完美重現
+    同場加映，那為什麼後來又分開？
+    因為上Gerrit review有Change-Id
+    他先revert master，拿到一個Change-Id
+    然後revert mainline_rel15，是另一個Change-Id
+    這兩個內容一樣、parent一樣的commit，message不一樣
+    所以hash不一樣
+    分開了
+
+### 20220419
+*   整理Jimmy学长的资讯
+    > DSP_Remove_L23_Note.txt
+
+### 20220420
+*   复现osp_system_timer.c:129 assert
+    > 加log印出 gOspTimer.system.info[] 里面的内容
+    > 无法复现assert，因为patch里会把i的值改成33，不满足assert的条件
+    > ```sh
+    > RT_ASSERT_PARAM(i != OSP_MAX_TIMER, Msg, i, 0);
+    > ```
+*   修改modem/include/swconfigs/APP_COOPER/resource.h:135，不再遇到assert
+    > OSP_TASK_DEF(L3PS_Task_ID, "L3PS", L3PS_TaskEntry, 8192, <font color='red'>0x68</font>, 50)
+
+### 20220421
+*   Trace OSP_SYSTEM_TIMER_t dump
+    > KM4和DSP两边都有Plat_Exit---->Plat_DataDump--->Osp_DumpTimer
+*   和lizzie讨论COMMON_CONFIG_V2的相关structure改动
+*   协助Sam看paging相关的talog和计算方法
+*   配置PKDOMAIN下的电脑环境
+*   验证Dennis的plat_checksum机制是否work
+
+### 20220422
+*   narrow down osp_system_timer.c:129 assert
+    > trace freeRTOS timer service code [freertos之timer浅析](https://blog.csdn.net/qq_33894122/article/details/84866270)
+    > sync with Hendry (遇到的现象是：先后两个os tick，都会往pxCurrentTimerList里面insert node)
+*   安装**realtek高清晰音频管理器**，可以识别耳麦
+
+### 20220424
+*   narrow down osp_system_timer.c:129 assert
+    > TmrVal = 1, TmrType = 0, ppstruMsg = 0x200C3F30, MsgType = 0x19190001\n
+    xMessageID = 4, xTimeNow = 79325------->对应xTimerChangePeriod
+    xNextExpireTime=79326-------->expired的tick=79326
+    Msg = 0x200C3F30-------->当tick=79326，调用callback function，remove node from pxCurrentTimerList
+    xMessageID = 1, xTimeNow = 79326-------->对应xTimerStart，此时now=79326
+    xNextExpireTime=79327 -------->由于node已经remove了，所以freeRtos的timer service在收到command=1时，还是会再次insert到pxCurrentTimerList，得到expired的tick=79327
+    Msg = 0x200C3F30-------->当tick=79327，再次调用callback function，remove node from pxCurrentTimerList
+    > 
+    > 当xTimerChangePeriod 就已經會 insert node 了，osTimerStart() 就不需要呼叫 xTimerStart()了
