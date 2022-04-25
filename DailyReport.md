@@ -963,7 +963,7 @@
     > 1.遇到这种问题，应该在git push之前做git pull --rebase
     > 2.如果想要revert掉该commit，其实需要rewrite history并且拥有--force的权限
     > 3.当执行错误做法：git revert时遇到error: commit d2e4217 is a merge but no -m option was given.
-    >> 当前的merge commit其实包含了两个子commit，也就是当时合并的两个commit，因此在执行git revert 的时候会失败，需要选择回滚具体的两个子commit中的一个才可以正常回滚，但不管怎样，-m 1是表示revert jimmy的commit(保留以第1条为主线回滚第2条commit)，-m 2是表示revert manda的commit：
+    >> 当前的merge commit其实包含了两个子commit，也就是当时合并的两个commit，因此在执行git revert 的时候会失败，需要选择回滚具体的两个子commit中的一个才可以正常回滚，但不管怎样，git revert d2e4217 -m 1，其中-m 1是表示revert jimmy的commit(保留以第1条为主线回滚第2条commit)，-m 2是表示revert manda的commit：
     >> ```sh
     >> commit 8d6893a9cfa9858ae5fc5a218bae90087093bfa1 (HEAD -> l23ap_dev, origin/l23ap_dev)
     >> Merge: 5d3fff801(manda的commit) 09250842e(jimmy的commit)
