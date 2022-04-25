@@ -949,3 +949,24 @@
     Msg = 0x200C3F30-------->当tick=79327，再次调用callback function，remove node from pxCurrentTimerList
     > 
     > 当xTimerChangePeriod 就已經會 insert node 了，osTimerStart() 就不需要呼叫 xTimerStart()了
+
+### 20220425
+*   enable UAI task in DSP side (Done)
+    > 1.當 ENABLE_UAI 時，也就 ENABLE_L3，虽然l3_com.c中 被ENABLE_L3包起来的除了有NAS用到的部分还有RRC相关的function
+    >> linker 會把那些沒人使用的函式都消失掉，可以在.map 裡檢查看看這個
+    >
+    > 2.目前resource.h中 ENABLE_UAI 被包在ENABLE_NAS底下
+    >> 把 UAI 的東西移到 ENABLE_NAS 之外
+*   入网support
+    > AT+CGMR可以查询modem的version
+*   Merge branch 'l23ap_dev' of ssh://cn3wd7.sdlc.rd.realtek.com:29418/cooper_sdk into l23ap_dev
+    > 1.遇到这种问题，应该在git push之前做git pull --rebase
+    > 2.如果想要revert掉该commit，其实需要rewrite history并且拥有--force的权限
+    > 3.当执行错误做法：git revert时遇到error: commit d2e4217 is a merge but no -m option was given.
+    >> 当前的merge commit其实包含了两个子commit，也就是当时合并的两个commit，因此在执行git revert 的时候会失败，需要选择回滚具体的两个子commit中的一个才可以正常回滚，但不管怎样，-m 1是表示revert jimmy的commit(保留以第1条为主线回滚第2条commit)，-m 2是表示revert manda的commit：
+    >> ```sh
+    >> commit 8d6893a9cfa9858ae5fc5a218bae90087093bfa1 (HEAD -> l23ap_dev, origin/l23ap_dev)
+    >> Merge: 5d3fff801(manda的commit) 09250842e(jimmy的commit)
+    >> Author: manda.tang <manda.tang@pankore.com>
+    >> Date:   Mon Apr 25 19:07:35 2022 +0800
+    >> ```
