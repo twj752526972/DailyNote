@@ -970,3 +970,27 @@
     >> Author: manda.tang <manda.tang@pankore.com>
     >> Date:   Mon Apr 25 19:07:35 2022 +0800
     >> ```
+
+### 20220426
+*   比对当DSP端有ENABLE_UAI后talog的区别，并且复制sanity log的场景，30s shutdown后，再次at+cfun=1，之前会WDT assert，现在不会遇到
+    > http://172.26.5.130:8080/job/SDN/job/cooper/job/sanity/1821/
+    這個 log 的進程問題是 DSP 決定要睡，給了 KM4 XIP GAP 一段時間
+    KM4 利用這個 gap ，應該有開始進行 flash 的動作，我覺得是 flash erase
+    但 DSP 自己突然醒過來了，我猜測是 USIM interrupt，因為在睡之前有不少動作
+    繼續推測，可能是由 UAI 使用 SM_Lock() 包住整個 USIM transaction但 UAI 跑到 KM4 了，它的  SM_Lock() 是影響了 KM4 SM
+    DSP USIM 自己不會 lock，也許它對 USIM 下命令，等待回應時，DSP 就跑去睡了
+    USIM 後來有回應，發 IRQ 給 DSP，DSP 自己就醒來了
+    但 KM4 此時如果正在 flash erase，DSP 如果從 flash fetch code，一定會取得錯的資料就升天了
+*   L1C bi-weekly周会
+*   天唯北斗NB模组国内认证meeting
+*   比对jimmy学长修改的：L23的malloc全都改成 persistent memory
+    > OSP_PERSISTENT_HEAP_INDEX vs OSP_NORMAL_HEAP_INDEX
+    > free时函数vPortFreeWithID(pv, index);中的index即为当初malloc时pxBlock拿到的index
+*   和casey/miriam讨论关于为何L3PS task priority升高后，不再遇到assert的原因，需要查看talog确认
+
+### 20220427
+*   天唯北斗NB模组国内认证
+    > trace 22.5.1/22.5.2/22.5.4 FAIL的原因，并且提jira
+    > 整理NB-IoT进网测试例及对应参照标准-Rev1.doc中需要测试的条目
+*   刘玉倩 vs L1C讨论：关于使用NSSS SNR辅助帮忙SI early termination
+
