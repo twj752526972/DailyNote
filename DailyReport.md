@@ -994,3 +994,24 @@
     > 整理NB-IoT进网测试例及对应参照标准-Rev1.doc中需要测试的条目
 *   刘玉倩 vs L1C讨论：关于使用NSSS SNR辅助帮忙SI early termination
 
+### 20220428
+*   天唯北斗NB模组国内认证
+    > 整理入网测试进度
+*   Wake up signal report by ethan_xu
+    > 预习Wake up signal report
+
+### 20220429
+*   [NBIOTCOPER-2925](https://jira.realtek.com/browse/NBIOTCOPER-2925)
+    > 和勇哥讨论完成应该是ss和ets之间的scheduling问题，DCI N1遇到了周期性的DCI N0
+*   [NBIOTCOPER-2921](https://jira.realtek.com/browse/NBIOTCOPER-2921)
+    > ndi有被reset成0，VPHY在未camp on cell时无条件monitor DCI N0，会复写为1
+*   [NBIOTCOPER-2929](https://jira.realtek.com/browse/NBIOTCOPER-2929)
+    > branch v3.1上的现象
+*   查看NCC入网资料
+
+### 20220505
+*   协助Harris build image for RRC connection release issue
+*   SuperSFN+1 讨论 by Ted
+    > 需要check paging被callback以后是否有拿time align后的时间去claim resource
+*   [NBIOTCOPER-2929](https://jira.realtek.com/browse/NBIOTCOPER-2929)
+    > 学习git push origin HEAD:refs/for/master%private的用法
