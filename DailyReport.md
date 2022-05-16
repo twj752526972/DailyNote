@@ -1005,6 +1005,7 @@
     > 和勇哥讨论完成应该是ss和ets之间的scheduling问题，DCI N1遇到了周期性的DCI N0
 *   [NBIOTCOPER-2921](https://jira.realtek.com/browse/NBIOTCOPER-2921)
     > ndi有被reset成0，VPHY在未camp on cell时无条件monitor DCI N0，会复写为1
+    > 需要查看这笔DCI N0是否为ss端的bug
 *   [NBIOTCOPER-2929](https://jira.realtek.com/browse/NBIOTCOPER-2929)
     > branch v3.1上的现象
 *   查看NCC入网资料
@@ -1015,3 +1016,149 @@
     > 需要check paging被callback以后是否有拿time align后的时间去claim resource
 *   [NBIOTCOPER-2929](https://jira.realtek.com/browse/NBIOTCOPER-2929)
     > 学习git push origin HEAD:refs/for/master%private的用法
+    > 需要在gerrit网站上将change修改为Unmark private
+
+### 20220506
+*   查找SIB23-NB在SIB1-NB中scheduling的相关资讯
+    > **R2-1807859** **R2-1809276** and **R2-1811001(3GPP TSG-RAN WG2 meeting #103)**
+    > Proposal 9: RAN2 to discuss introducing configuration of NPRACH resource for preamble format 2 in a new SIB, e.g. SIB23.
+    > Introduce new SIB for configuration of NPRACH resource for preamble format 2.
+    >
+    > **R2-1811553**
+    > 1.IE UL-ConfigCommonListBis-NB-r15 is actually an extension of IE UL-ConfigCommonList-r14.  The elements in the list have been split into two elements per fear to exceed SIB22-NB size (H626).
+    > 2.ul-ConfigList, ul-ConfigListMixed are the same lists as in SIB22-NB, we should not duplicate the description (H629).
+    > 
+    > **RP-181945**
+    > 看起来这一版就将所有的change一并update了，并没有追加说明
+*   和Emma/Owen/Chloe讨论RRCPHY的interface
+    > 看起来应该是在**非第一个**Item的SchedulingInfo-NB-r13的sib-MappingInfo-r13中填0，
+    ![sib-MappingInfo-r13](sib-MappingInfo-r13.png)![sib-MappingInfo-v1530](sib-MappingInfo-v1530.png)
+    > commit mainline_rel15 7c8dc49
+
+### 20220507
+*   修改SI的code支持early camp on，即提前收取SIB2/SIB22/SIB23回报给上层
+*   [NBIOTCOPER-2930](https://jira.realtek.com/browse/NBIOTCOPER-2930)
+    > cooper_sdk 的 LNB_CphyInterFreqCellMeasCfgReq() 沒有正確夾帶 aInterFreqInfoList[] 給 L1C
+*   [NBIOTCOPER-2931](https://jira.realtek.com/browse/NBIOTCOPER-2931)
+    > 1 ms assert的问题，因為Osp_CC_Send_Msg()裡面call到Plat_MBOXAP_L23SendMessage()是放在flash，裡面再call到RQ_Enqueue()也是放在flash，所以在l1c_task裡送cross-core msg會受到很大影響，解决方法是將PS callback msg拉回msg_task送
+    > 在L1C task裡callback的缺點是萬一跑到L23比較慢或處理比較多事情的adapter function，就有加劇L1C 1ms限制的問題。
+    在msg task裡callback的缺點是延後處理，如果L1C也都把1ms跑很滿，那就有可能會把原本callback裡要處理的事情展開成好幾ms。
+    但想像中大部分情況應該都只會更好的理由是：
+    如果原本會因為callback導致1ms不夠，那除了其他地方加速以外，
+    唯一的救贖就是把容許慢慢處理的事情 (L23，callback裡的資訊理論上大部分也都算是) 放到真正可以慢慢處理的地方，
+    對目前的L1C來說，msg task就是唯一那樣的地方。
+*   [NBIOTCOPER-2922](https://jira.realtek.com/browse/NBIOTCOPER-2922)
+    > modem會把msg_task暫停掉，剛好msg_task在send osp msg時lock住mutex又被停掉就會遇到idle task要送msg要不到mutex就yield，結果整個OS找不到task可以執行的assert
+    > L1送出MSG_ID_LTE_L1CRRC_COMMON_CH_CONFIG_CNF中途，在_Osp_CC_Send_Msg() mutex lock區間正好發生mbox ISR被context switch掉。
+    但因為L1C處理common config的流程是
+    l1c_task在處理完成common config msg後會暫時suspend msg_task去align serving cell，
+    待align完畢後再resume msg_task以防止後續啟動的l1c內部處理基於可能將變動的l1c time進行處理，
+    此issue是因為msg_task正好lock住_Osp_CC_Send_Msg之後接著被suspend，所以到idle task要send msg時產生此結果
+
+### 20220509
+*   L1C bi-weekly周会
+*   协助build image for 天唯北斗入网测试
+    > +CGMR: Modem "ad42a65-"ef72b7a0"-"eb975107", KM4 7b00ee257
+    >> 找不到modem.base ad42a65这一版的原因是：2022年1月30号有做过git rewrite history，release image时间点为1月21号
+    >
+    > SDK-release-v31切到96e2fe894，没办法通过WIP的方式trigger jenkins去build image
+    >> "user交上來一個change，他希望是放到SDK-release-3.1，base是SDK-release-3.1，change是現在上來的這個commit"，所謂branch並不是一整條code-line，而是個ref，也就是那條線的頂端
+    >> 說穿了Gerrit還是用來幫忙commit
+    離開ref對他來說沒有意義
+    要任意版本release要用的test-release
+    不太可能是透過Gerrit進行的wip了
+    Gerrit不能操作在detached HEAD上
+    wip還是個Gerrit change
+    Gerrit change就是要做code review
+    但因為是code-review，他無法表達對著不是HEAD的commit
+    這對一個要進到code line的change來說沒有意義
+    所以他沒給這樣的表達方式
+    平常做實驗用很好
+*   l23ap_dev merge to master的这一版858c23之后
+    > l23ap_dev 要 build L23AP 的方法有一點改變（未來在 master build L23AP > 也會是這個方法）
+    > 首先，DSP 的產物要放到 cooper_sdk/project/cooper_example/GCC-RELEASE/> lib/dsp_bin_l23ap
+    > cooper_sdk 的 build command 要帶個環境變數：cooper_sdk/project/> cooper_example/GCC-RELEASE$ L23AP=1 ./build_cooper_sdk_is.sh
+    > 各位一定就可以想像了兩種 dsp build （L23DSP and L23AP）是分別放在 
+    > cooper_sdk/project/cooper_example/GCC-RELEASE/lib/dsp_bin
+    > cooper_sdk/project/cooper_example/GCC-RELEASE/lib/dsp_bin_l23ap
+    > 
+    > 環境變數 L23AP=1 的影響：
+    > CPPFLAGS += -DENABLE_L3_AP=1 -DENABLE_L2_AP=1 > -DCONFIG_SRAM1_RETENTION=1
+    > DSP_DIR := $(LIB_DIR)/dsp_bin_l23ap
+    > 會 build lib_modem_l23 and lib_modem_asn1
+    > 
+    > asn1獨立出來的原因是：
+    > lib_modem_asn1.mk 比其它 makefile 少 include exported.h，使得它們不會> 只因為 exported.h 檔案時間更新就重build
+    > 我覺得它的檔案數量實在太多，如果獨立出來不麻煩的話可以省一點build 的時間
+    > 
+    > 用 jenkins cooper_sdk test-release build L23AP 可以比較方便了
+    > 欄位 multicore_type 填 "l23ap"
+    > 影響：
+    > 用 L23AP 的方式 config modem，and then build
+    > 將 modem 產物放到 cooper_sdk dsp_bin_l23ap
+    > build cooper_sdk 時設定環境變數 L23AP=1
+
+### 20220510
+*   trace Jimmy学长在cooper.jenkins-libraries关于multicore_type的改动
+    > 1.[关于shell脚本中‘’“”各自用途](https://blog.csdn.net/smile_ay/article/details/119387587)
+    >> ''：单引号是不能识别变量，只会原样输出，单引号是不能转义的；
+    >> ""：双引号能够识别变量，双引号能够实现转义(类似于“\”)
+    > 
+    > 2.加 multicore_type當初也是因為是script 描述加欄位，總是要讓 script 執行過一次，網頁看起來欄位才會增加出來
+*   [NBIOTCOPER-2936](https://jira.realtek.com/browse/NBIOTCOPER-2936)
+    > trace UL CRC FAIL issue
+*   [FreeRtos源码分析之任务通知xTaskNotify](https://blog.csdn.net/weixin_39270987/article/details/113569691)
+*   [[FreeRTOS学习] 任务通知](https://www.jianshu.com/p/6528d09627cf)
+*   [NBIOTCOPER-2873](https://jira.realtek.com/browse/NBIOTCOPER-2873)
+    > 了解rrc connection release issue
+*   [FreeRTOS任务通知](https://blog.csdn.net/hqy450665101/article/details/113529218)
+    > 任务通知在某些场景可以替代信号量、消息队列、事件等。获取任务通知函数只能用在任务中，没有带中断保护版本，因此只有两个 API 函数： ulTaskNotifyTake()和xTaskNotifyWait()。
+    > 前者是为代替二进制信号量和计数信号量而专门设计的，它和发送通知API 函数 xTaskNotifyGive()、 vTaskNotifyGiveFromISR()配合使用；后者是全功能版的等待通知，可以根据不同的参数实现轻量级二值信号量、计数信号量、事件组和长度为 1 的队列。
+
+### 20220511
+*   比对USIM 5.1.10 PASS的CMW500 log和test house的仪表端log
+    > test house用的是MLAPI跑的，不会去看PICS设定pc_SwitchOnOff value='TRUE'
+    > 协助cherry查看checkout到SDK-release-v31的96e2fe8版本后，没有platform/targets/CEVAX1EVB/Makefile.in的问题，因为rewrite过history了，所以就应该是没有的
+*   [NBIOTCOPER-524](https://jira.realtek.com/browse/NBIOTCOPER-524)
+    > 在收到common config時會block msg task，xTaskNotifyWait中将timeout设置為100ms，等待time align做完再去发xTaskNotifyGive(本质上相当于xTaskNotify，可以使用该API函数代替二进制或计数信号量，但速度更快。在这种情况下，应该使用API函数ulTaskNotifyTake来等待通知，而不应该使用API函数xTaskNotifyWait)，通知msg task，对其进行resume的动作，
+    > assert时，這個場景收到common config時剛好idle cs正在做,所以time align拿不到resource，因此timeout
+*   enum 的大小，KM4 compiler 預設會用最小，compiler option "-fshort-enums"，CEVA 應該是 4-byte
+    > 1.dsp 端可能已經用 u32 的方式寫進 nvram 了，如果把結構無腦地改成用 minimum，NAS 直接 assert(那塊板子變成無論用 master or v31 版本測，都會 assert因為它有被 l23ap 寫過了，预设用最小)，可以的話，確保 nvm item structure 在各個平台都有同樣觀點就好了，最后是选择use U32 
+    > 2.[makefile学习之 -fshort-enums的使用](https://blog.csdn.net/Bgm_Nilbb/article/details/122404967)
+    > 多数编译器默认enum型长度等于int型，很多人也把enum型变量等同于int，但C标准在这里留下了尾巴：“枚举型尺寸是能够容纳最大枚举子值的整数尺寸”，“枚举类型中枚举子的值必须要能用一个int型表述”。也就是说，枚举型的尺寸不能超过int型，但不必等于int型，只要能容纳最大枚举子就行
+    enum也有一个隐含问题：enum变量占用的空间与编译器相关
+    enum长度不确定会带来可移植性问题。比如上层应用编译时没有用-fshort-enums，默认用4字节空间来存储使用enum变量，而编译库时设置了fshort-enums，则库内部此enum size可能为1。当把enum变量地址传进API时，内部只修改变量最低字节，高3字节值无变化(内容随机)，API返回时，上层使用的4字节enum变量值就可能随机。
+    因此内部代码使用enum类型优于define，但对外API接口尽量避免用enum型
+*   学习使用image_tool在windows下download image
+
+### 20220512
+*   review WUS report by ethan_xu
+    > **36.133 4.6.2.1A** 
+    > The UE which supports WUS shall meet the requirement defined for the DRX cycle length of N*DRX_cycle in Section 4.6.2.1, provided the following conditions are met:
+    > - WUS has been configured in the serving NB-IoT cell using WUS-Config-NB-r15 [2], and
+    > - The serving cell measurement relaxation is signalled as n by the network using numDRX-CycleRelaxed-r15, and
+    > - Serving cell S criteria is met with at least 2 dB margin.(**这边往上是一句话结束**)
+    > - the relaxed monitoring criteria for neighbour cells in TS 36.304 [1] clause 5.2.4.12.1 is fulfilled, and, where the relaxation factor N is given by Table 4.6.2.1A-1. 
+    > 
+    > Otherwise the requirements defined for the configured DRX cycle length in Section 4.6.2.1 shall apply.
+*   了解[NBIOTCOPER-2928](https://jira.realtek.com/browse/NBIOTCOPER-2928)
+*   了解[同步/异步，阻塞/非阻塞概念深度解析](https://blog.csdn.net/lengxiao1993/article/details/78154467)
+    > 阻塞这个词是与系统调用 System Call 紧紧联系在一起的， 因为要让一个进程进入 等待(waiting)的状态, 要么是它主动调用 wait() 或 sleep() 等挂起自己的操作， 另一种就是它调用 System Call, 而 System Call 因为涉及到了 I/O 操作， 不能立即完成， 于是内核就会先将该进程置为等待状态， 调度其他进程的运行， 等到 它所请求的 I/O 操作完成了以后， 再将其状态更改回 ready。
+*   titan GCF case 22.5.9 (mainline master)
+    [NBIOTCOPER-2944](https://jira.realtek.com/browse/NBIOTCOPER-2944)
+*   titan GCF case 22.5.17 (mainline master)
+    > titan error，**ninja -j1** build titan会死机
+    ![TTCN_error_22.5.17](TTCN_error_22.5.17.png)
+*   titan GCF case 22.3.1.8 (branch mainline_rel15)
+    [NBIOTCOPER-2945](https://jira.realtek.com/browse/NBIOTCOPER-2945)
+
+### 20220513
+*   commit [VPHY][R15 feature][Non Anchor][EDT FMT2] support COMMON_CONFIG_V2
+*   commit [VPHY][R14 feature][Non Anchor] support COMMON_CONFIG_V2
+*   titan GCF case 22.3.1.8 (branch mainline_rel15)
+    [NBIOTCOPER-2945](https://jira.realtek.com/browse/NBIOTCOPER-2945) <font color='red'> PASS </font>
+
+### 20220516
+*   commit [NB-IoT][L1C][R15][EDT FORMAT2] store the parameters about EDT and Format2 for nprach non-anchor carrier
+*   git cherry-pick branch 3.1 cb5f1f5 to master ca0b34f
+    > [git merge rebase cherry-pick分别什么时候用？](https://blog.csdn.net/weixin_64314555/article/details/121567879)
