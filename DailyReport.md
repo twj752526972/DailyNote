@@ -1162,3 +1162,11 @@
 *   commit [NB-IoT][L1C][R15][EDT FORMAT2] store the parameters about EDT and Format2 for nprach non-anchor carrier
 *   git cherry-pick branch 3.1 cb5f1f5 to master ca0b34f
     > [git merge rebase cherry-pick分别什么时候用？](https://blog.csdn.net/weixin_64314555/article/details/121567879)
+
+### 20220517
+*   commit [NB-IoT][L1C][R15][EDT FORMAT2] store the parameters about EDT and Format2 for nprach anchor carrier
+*   commit [VPHY] fix the memory leak which results in 22.3.1.6 fail in POSIX
+*   narrow down titan GCF case 22.3.1.4 fail
+    > [NBIOTCOPER-2948](https://jira.realtek.com/browse/NBIOTCOPER-2948)
+*   narrow down titan GCF case 22.3.3.1 fail
+    > [NBIOTCOPER-2949](https://jira.realtek.com/browse/NBIOTCOPER-2949)
