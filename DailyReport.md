@@ -1170,3 +1170,22 @@
     > [NBIOTCOPER-2948](https://jira.realtek.com/browse/NBIOTCOPER-2948)
 *   narrow down titan GCF case 22.3.3.1 fail
     > [NBIOTCOPER-2949](https://jira.realtek.com/browse/NBIOTCOPER-2949)
+
+### 20220518
+*   narrow down titan GCF case 22.5.6 fail
+    > [NBIOTCOPER-2952](https://jira.realtek.com/browse/NBIOTCOPER-2952)
+*   titan GCF case 22.5.17 (mainline master)
+    > titan error，用source code build出来的titan可以PASS(./configure --disable-shared --with-titan-dir=/opt/titan.core-rtk)
+    > 记录在[NBIOTCOPER-2953](https://jira.realtek.com/browse/NBIOTCOPER-2953)
+    >> **NasInd(local variable)帶的是Attach Request**，TAU Accept的要對應TAU的
+*   Trace L1C的改动
+    > 当struct前面插了個msg head后，copy的size應該要用sizeof(STRUCT)，有些有掛extended content的還要加料，但大部分sizeof(msg struct)沒錯
+    ![extended_structure_content](extended_structure_content.png)
+*   primitive dump一般而言是由 primitive receiver 在 dump 的，做在
+    Osp_Receive_Msg() 裡，CC 只是負責傳遞，它來 dump 的話會出現重覆，
+    to L1的primitive因為不是用osp receive 收的所以不會印
+*   typedef LPHY_ACCESS_REQ_STRU MSG_LTE_MACL1C_ACCESS_REQ_t; 是为了cdexdb
+*   L23AP 在 idm 用量少了很多(少了osp_bss/l23_bss_no_sav/
+    asn_bss)，因此是有機會將 SRAM0 的一些 bss/data 挪進 idm，空出 SRAM0 給 KM4 用，KM4 DTCM 就可以空出給客戶用
+    ![L23AP_vs_L23DSP_size_compare](L23AP_vs_L23DSP_size_compare.png)
+
