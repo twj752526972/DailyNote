@@ -1145,18 +1145,20 @@
 *   了解[同步/异步，阻塞/非阻塞概念深度解析](https://blog.csdn.net/lengxiao1993/article/details/78154467)
     > 阻塞这个词是与系统调用 System Call 紧紧联系在一起的， 因为要让一个进程进入 等待(waiting)的状态, 要么是它主动调用 wait() 或 sleep() 等挂起自己的操作， 另一种就是它调用 System Call, 而 System Call 因为涉及到了 I/O 操作， 不能立即完成， 于是内核就会先将该进程置为等待状态， 调度其他进程的运行， 等到 它所请求的 I/O 操作完成了以后， 再将其状态更改回 ready。
 *   titan GCF case 22.5.9 (mainline master)
-    [NBIOTCOPER-2944](https://jira.realtek.com/browse/NBIOTCOPER-2944)
+    > [NBIOTCOPER-2944](https://jira.realtek.com/browse/NBIOTCOPER-2944)
+    > IF NOT pc_Automatic_EPS_Re_Attach, the user initiates an attach by MMI or by AT command. 
+    > 因为pics里设置为false(CMW500里有拉起来为TRUE)，所以网络会通过at command去triggerUE，当UE收到了AT+CGATT=1，UE会重新发起MMCGC_ACT_REQ
 *   titan GCF case 22.5.17 (mainline master)
     > titan error，**ninja -j1** build titan会死机
     ![TTCN_error_22.5.17](TTCN_error_22.5.17.png)
 *   titan GCF case 22.3.1.8 (branch mainline_rel15)
-    [NBIOTCOPER-2945](https://jira.realtek.com/browse/NBIOTCOPER-2945)
+    > [NBIOTCOPER-2945](https://jira.realtek.com/browse/NBIOTCOPER-2945)
 
 ### 20220513
 *   commit [VPHY][R15 feature][Non Anchor][EDT FMT2] support COMMON_CONFIG_V2
 *   commit [VPHY][R14 feature][Non Anchor] support COMMON_CONFIG_V2
 *   titan GCF case 22.3.1.8 (branch mainline_rel15)
-    [NBIOTCOPER-2945](https://jira.realtek.com/browse/NBIOTCOPER-2945) <font color='red'> PASS </font>
+    > [NBIOTCOPER-2945](https://jira.realtek.com/browse/NBIOTCOPER-2945) <font color='red'> PASS </font>
 
 ### 20220516
 *   commit [NB-IoT][L1C][R15][EDT FORMAT2] store the parameters about EDT and Format2 for nprach non-anchor carrier
@@ -1174,10 +1176,16 @@
 ### 20220518
 *   narrow down titan GCF case 22.5.6 fail
     > [NBIOTCOPER-2952](https://jira.realtek.com/browse/NBIOTCOPER-2952)
+*   narrow down titan GCF case 22.3.1.4 PASS
+    > [NBIOTCOPER-2948](https://jira.realtek.com/browse/NBIOTCOPER-2948) closed
 *   titan GCF case 22.5.17 (mainline master)
     > titan error，用source code build出来的titan可以PASS(./configure --disable-shared --with-titan-dir=/opt/titan.core-rtk)
     > 记录在[NBIOTCOPER-2953](https://jira.realtek.com/browse/NBIOTCOPER-2953)
-    >> **NasInd(local variable)帶的是Attach Request**，TAU Accept的要對應TAU的
+    > ttcn3的code中：**NasInd(local variable)帶的是Attach Request**，TAU Accept的要對應TAU的
+    > [mainline_rel15][enable R15 feature]这题用source code build出来的titan也是同样可以PASS
+*   narrow down titan GCF case 22.3.3.1 fail
+    > [NBIOTCOPER-2949](https://jira.realtek.com/browse/NBIOTCOPER-2949)
+    > 22.3.3.2/22.3.3.3/22.3.3.4/22.3.3.5/22.3.3.6de 现象类似，都是因为ADPU state未updated
 *   Trace L1C的改动
     > 当struct前面插了個msg head后，copy的size應該要用sizeof(STRUCT)，有些有掛extended content的還要加料，但大部分sizeof(msg struct)沒錯
     ![extended_structure_content](extended_structure_content.png)
