@@ -1147,7 +1147,7 @@
 *   titan GCF case 22.5.9 (mainline master)
     > [NBIOTCOPER-2944](https://jira.realtek.com/browse/NBIOTCOPER-2944)
     > IF NOT pc_Automatic_EPS_Re_Attach, the user initiates an attach by MMI or by AT command. 
-    > 因为pics里设置为false(CMW500里有拉起来为TRUE)，所以网络会通过at command去triggerUE，当UE收到了AT+CGATT=1，UE会重新发起MMCGC_ACT_REQ
+    > 因为pics里设置为false(CMW500里有拉起来为TRUE)，所以网络会通过at command去trigger UE，当UE收到了AT+CGATT=1，UE会重新发起MMCGC_ACT_REQ
 *   titan GCF case 22.5.17 (mainline master)
     > titan error，**ninja -j1** build titan会死机
     ![TTCN_error_22.5.17](TTCN_error_22.5.17.png)
@@ -1185,7 +1185,7 @@
     > [mainline_rel15][enable R15 feature]这题用source code build出来的titan也是同样可以PASS
 *   narrow down titan GCF case 22.3.3.1 fail
     > [NBIOTCOPER-2949](https://jira.realtek.com/browse/NBIOTCOPER-2949)
-    > 22.3.3.2/22.3.3.3/22.3.3.4/22.3.3.5/22.3.3.6de 现象类似，都是因为ADPU state未updated
+    > 22.3.3.2/22.3.3.3/22.3.3.4/22.3.3.5/22.3.3.6的现象类似，都是因为ADPU state未updated
 *   Trace L1C的改动
     > 当struct前面插了個msg head后，copy的size應該要用sizeof(STRUCT)，有些有掛extended content的還要加料，但大部分sizeof(msg struct)沒錯
     ![extended_structure_content](extended_structure_content.png)
@@ -1196,4 +1196,37 @@
 *   L23AP 在 idm 用量少了很多(少了osp_bss/l23_bss_no_sav/
     asn_bss)，因此是有機會將 SRAM0 的一些 bss/data 挪進 idm，空出 SRAM0 給 KM4 用，KM4 DTCM 就可以空出給客戶用
     ![L23AP_vs_L23DSP_size_compare](L23AP_vs_L23DSP_size_compare.png)
+
+### 20220519
+*   了解PHR的含义
+    > [功率余量报告PHR](https://blog.csdn.net/m_052148/article/details/52356323)
+    > PH，全称Power Headroom，中文为功率余量，即UE允许的最大传输功率与当前评估得到的PUSCH传输功率之间的差值，用公式可以简单的表示为：PH = UEAllowedMaxTransPower - PuschPower。它表示的是除了当前PUSCH传输所使用的传输功率之外，UE还有多少传输功率可以使用。PH的单位是dB，范围是[-23dB，+40dB]，如果是负值表示当前的PUSCH传输功率已经超过UE允许的最大传输功率，在下次调度时可以考虑减少该UE的RB资源分配。
+*   了解IMEI和IMSI的区别
+    > IMSI
+    IMSI是相对手机卡而言的国际移动用户识别码（IMSI：International Mobile Subscriber Identification Number），IMSI共有15位，其结构如：MCC+MNC+MSIN。
+    > 当你的手机开机后在接入网络的过程中有一个注册登记的过程，系统通过控制信道将经加密算法后的参数组传送给客户，手机中的SIM卡收到参数后，与SIM卡存储的客户鉴权参数经同样算法后对比，结果相同就允许接入，否则为非法客户，网络拒绝为此客户服务。
+    > 
+    > IMEI
+    手机对应的是IMEI（International Mobile Equipment Identity）是移动设备国际身份码的缩写，移动装备国际辨识码，是由15位数字组成的"电子串号"，它与每台手机一一对应，而且该码是全世界唯一的。每一部手机在组装完成后都将被赋予一个全球唯一的一组号码，这个号码从生产到交付使用都将被制造生产的厂商所记录。
+    > AT+CGSN=1，AT+CGSN=2 分别query IMEI和IMEISV
+    ![AT+CGSN](AT+CGSN.png)
+*   titan GCF case 22.5.6 fail
+    > [NBIOTCOPER-2952](https://jira.realtek.com/browse/NBIOTCOPER-2952) Won't Fix
+    > step 99，detach procedure collision，NAS的R15 CR有提到：
+    in state EMM-REGISTERED-INITIATED,在网络下发DETACH REQUEST message and detach type indicates “re-attach required”时，CR 的描述是“the detach procedure shall be progressed and the UE shall locally release the NAS signalling connection, before re-initiating the attach procedure.” 需要更新titan ttcn3 code到R15版本再试试看。
+*   [NBIOTCOPER-2873](https://jira.realtek.com/browse/NBIOTCOPER-2873)
+    > DNS retry timer改为30s，只retry 1次，如果有两个dns server，IPv4/IPv6会各一次
+    > 
+    > DNS cache有enable，一次query成功后会记录到dns table中，之后connect就不会再发送dns query。不过dns有一个time to live的字段，表示本次query结果的有效期，比如10分钟。超过有效期后需要重新query。
+    > 
+    > 引申参考[NBIOTCOPER-2789](https://jira.realtek.com/browse/NBIOTCOPER-2789)
+    > 整个MQTT连接过程的重传主要包括DNS重传、握手SYN包重传和TCP包重传。
+    >> 1.域名解析DNS重传；
+    >> 
+    >> 2.握手包SYN包重传：SYN包最多重传6次，tcp_alloc时会将pcb->rto设置成3s，且在发送SYN包的过程中不会重新计算rto的值，因此SYN包会固定3s一次的重传最多重传6次。
+    >> 
+    >> 3.TCP数据包重传：TCP的fasttmr是250ms进一次，slowtmr是500ms进一次，数据包最大重传次数12次(一般上层应用等不到12次就会判定超时)。TCP数据包重传遵循指数回退机制，会根据之前数据包往返的RTT时间、重传次数和指数回退数组tcp_backoff中的值来重新计算rto。
+*   titan GCF case 22.3.3.1 PASS
+    > [NBIOTCOPER-2949](https://jira.realtek.com/browse/NBIOTCOPER-2949)
+    > 22.3.3.2/22.3.3.3/22.3.3.4/22.3.3.5/22.3.3.6 PASS
 
