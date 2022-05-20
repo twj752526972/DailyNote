@@ -1230,3 +1230,12 @@
     > [NBIOTCOPER-2949](https://jira.realtek.com/browse/NBIOTCOPER-2949)
     > 22.3.3.2/22.3.3.3/22.3.3.4/22.3.3.5/22.3.3.6 PASS
 
+### 20220520
+*   narrow down titan GCF case 22.5.7a fail
+    > [NBIOTCOPER-2955](https://jira.realtek.com/browse/NBIOTCOPER-2955)
+    > pc_Automatic_EPS_Re_Attach := true之后，step 53，不再会有at command下AT+CGATT=1，UE却没有自主发起attach request
+*   协助lizzie check COMMON_CONFIG_V2 non anchor carrier配置中关于Need OR/ Need OP的栏位
+    > 底层关于pcch config的操作只关心ucPcchNonAnchCarrIndex，非0时才会去存下non anchor carrier for paging的配置
+*   协助owen查看RS-PC-4的电脑，download image OK，run case fail
+    > 重新插拔板子，手动trigger jenkins QC，run case OK
+
