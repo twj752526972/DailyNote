@@ -1239,3 +1239,35 @@
 *   协助owen查看RS-PC-4的电脑，download image OK，run case fail
     > 重新插拔板子，手动trigger jenkins QC，run case OK
 
+### 20220523
+*   check additional SIB1 subframe type的相关判断
+    > ```sh
+    > if (mib里带了additionalSIB1 = false 或者 是一个R14 UE)
+    > {
+    >   子帧3应该follow dlbitmap的配置
+    > }
+    > else  //  additionalSIB1 = TRUE
+    > {
+    >   if (属于传sib1的radio frame)
+    >   {
+    >       子帧3就是sib1 子帧
+    >   }
+    >   else if (search space 是USS 并且dedicated config里additionalTxSIB1 = TRUE)
+    >   {
+    >       子帧3是downlink subframe
+    >   }
+    >   else
+    >   {
+    >       子帧3应该follow dlbitmap的配置  // dlbitmap里应该是会disable掉子帧3
+    >   }
+    > }
+    > ```
+*   协助casey解决email address is not registered in your account的问题
+    > git commit --amend --reset-author
+*   trace paging flow V2 in non-anchor carrier
+    > 根据不同的SNR，会有一个固定要收的subframe数目(L1C_RX_SNR_TABLE) = tracking subframes + npdcch candidates
+    > 判断non anchor carrier是否存在(是否能够detect到power)：实际在non-anchor carrier上量测到的RSRP < anchor carrier的RSRP + nrs-PowerOffsetNonAnchor + (-10 dB的margin)，这种情况就视为不存在
+*   sync L1C timer service with Hendry and Owen
+    > trace subframe tick in VPHY
+    > maybe use ActionlistType_TimerService to support timer service
+*   QC的image及target_ram.axf被保留在当前存放log的前一个jenkins trigger
