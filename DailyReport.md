@@ -1271,3 +1271,36 @@
     > trace subframe tick in VPHY
     > maybe use ActionlistType_TimerService to support timer service
 *   QC的image及target_ram.axf被保留在当前存放log的前一个jenkins trigger
+
+### 20220524
+*   Sync L1C timer service with Emma, Hendry and Owen
+    > struct 中定义msgId不应该是void *
+    > 发现use ActionlistType_TimerService to support timer service不行，当timer超时时，没有msgId的讯息
+*   trace Dennis关于ENABLE_PHY_OSP_ADAPT的改动(VPHY part)
+    > LNB_PhyTaTimerReq和LNB_PhyGetTaExpiryReq
+
+### 20220525
+*   narrow down GCF case fail on POSIX when ENABLE_PHY_OSP_ADAPT
+    > detach request的时候，RLC预期应该会给RRC发ACK_IND，但是却看到一堆L1CRRC_IN_SYNC，怀疑是RLC和L1C的priority问题
+    > Dennis分析是因为ADAPT 这个task的priority是append在L3PS task里(priority很低)，之前采用callback function，直接就调用了，执行的优先级属于L1C，但是改为由ADAPT之后，priority是最低的，会等待直到轮到自己的执行权，所以积压了一堆L1CRRC_IN_SYNC
+    > plat_ta.c里看到MSG_ID_LTE_L1CMAC_BCH_DATA_IND和MSG_ID_LTE_L1CMAC_DL_SCH_DATA_IND顺序mismatch
+*   mainline_rel15 commit失败，协助将ENABLE_PHY_OSP_ADAPT没包到的部分补齐
+    > MSG_ID_LTE_RRCL1C_COMMON_CH_CONFIG_UL_NONANCHOR_REQ
+    > LNB_PhySrConfigReq()
+*   VPHY timer service
+    > 在rrc_adapt_ceva.c里面发送primitive msg验证code
+
+### 20220526
+*   narrow down GCF case 22.3.1.8 fail on POSIX when ENABLE_PHY_OSP_ADAPT
+    > [NBIOTCOPER-2961](https://jira.realtek.com/browse/NBIOTCOPER-2961)
+*   将mainline_rel15上的改动(关于COMMON_CONFIG_V2的)先cherry-pick到mainline，保持一致
+*   L1C bi-weekly周会
+*   VPHY timer service
+    > commit code 失败，no license，是羽伦把GCF jenkins的project并行执行了4个build
+
+### 20220527
+*   [NBIOTCOPER-2961](https://jira.realtek.com/browse/NBIOTCOPER-2961)
+    > 1.fix the handling about the non anchor carrier configuration when ENABLE_PHY_OSP_ADAPT
+    > 2.mainline_rel15上也一并cherry-pick了该版本，并且同步修改掉了跟format 2 相关的部分
+*   和Owen sync关于get sfn msg的部分
+    > VPHY也需要同步跟进
