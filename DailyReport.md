@@ -1304,3 +1304,141 @@
     > 2.mainline_rel15上也一并cherry-pick了该版本，并且同步修改掉了跟format 2 相关的部分
 *   和Owen sync关于get sfn msg的部分
     > VPHY也需要同步跟进
+
+### 20220530
+*   get sfn msg的部分
+    > VPHY Done
+    > 和Dennis sync 关于移除marco ，因为那些Msg Id没有被包在里面
+*   Debug Osp_Mutex_Lock 并且修改 VPHY的code
+    > RRC使用了lock以后，所有的L3PS task都会被suspend住，因此不会去收MSG_ID_LTE_L1CRRC_GET_SFN_CNF，也就无法unlock
+*   协助查看RS-PC-4的板子无法download的问题
+    > jumper插错位置
+*   查看CC学姐在l23ap的image上show出来modem version的问题
+    > multicore_type带l23ap时，多带了一个空格
+*   协助Hendry查看commit code失败的问题
+    > modem.base没有更新到最新，导致configure.ac里和l1c.h里同时enable了ENABLE_PHY_MSG_API，build error
+
+### 20220531
+*   协助周莹安装serial-ctrl 0.1.22
+    > ```sh
+    > uname -m
+    > x86_64(x86_64就是amd64)
+    > uname -a
+    > Linux Mint20 5.4.0-113-generic 127-Ubuntu SMP Wed May 18 14:30:56 UTC 2022 x86_64 x86_64 x86_64 GNU/Linux
+    > dpkg --print-architecture
+    > amd64
+    > ```
+*   study Osp_Mutex_Lock
+    > [浅谈互斥锁为什么还要和条件变量配合使用](https://wenku.baidu.com/view/eca18a82d2f34693daef5ef7ba0d4a7302766c26.html)
+    > [条件变量为何必须和互斥锁一起使用](https://blog.csdn.net/weixin_44927463/article/details/119803396)
+    > [FreeRTOS-优先级继承机制-学习笔记](https://blog.csdn.net/fdfdsds/article/details/87900983)
+
+### 20220601
+*   学习使用windows下的serial-ctrl
+    > ```sh
+    > "c:\Program Files\serial-ctrl_0.1.22-windows\serial-ctrl.exe" --chip-version=c-cut-esc --console-port=COM32 --ctrl-port=COM34 --aux-ctrl-port=COM35 download --port-spec=bga_5v4_log_b6_b7 E:\image\boot.bin@0x12D000 E:\image\firmware.bin@0x140000 E:\image\partition.bin@0x0
+    > ```
+*   trace jimmy学长的改动
+    > [MAKE][COOPER] export the information of git branch and revision
+    >> 讓 modem deliverables 中的 exported.h 包含版本資訊，e.g.
+    >> #define modem_revision "9b598abb-774028da-1f496586"
+    >> 然後 AT+CGMR command handler function 的實作中，如果 macro "modem_revision" 有被定義，就直接拿來放進 command response 回傳出來，而不用再發 primitive 向 ADP 詢問
+*   trace issue [NBIOTCOPER-415](https://jira.realtek.com/browse/NBIOTCOPER-415) 解不到paging
+    > cfo偏大
+
+### 20220602 [请假一天]
+
+### 20220606
+*   [NBIOTCOPER-2957](https://jira.realtek.com/browse/NBIOTCOPER-2957)
+    > sleep_manager.c register area to save 要不到, areas 不足, MAX_AREAS = 32, Area areas[MAX_AREAS]; areas 真的不夠 => 每個平台所需要的 areas 不同, 需要獨立出來
+    > 準備在 SM_RegisterAreaToSave()/SM_UnregisterAreaToSave() 加上判斷: 待註冊位址是否在 retention memory 內. 由於原先判斷 位址是否在 retention memory 中需要 address & size. 因此有以下2方案:
+    > 1. 新增 size 至 SM_UnregisterAreaToSave
+    > 2. 不更動api, 改用 start address 是否在 retention memory 內即可
+    > 
+    > 在不大幅更動 client code 的前提下, 決定先使用方案 2. 
+    > 新增 SM_TargetIsStartAddressInRetention() 供 SM_UnregisterAreaToSave() 使用
+    > 
+    > 這是 L23 on AP 的config,等於說把 register area to save 的需求從 dsp/ap 平均分配, 變成大多數在ap, 因此總量變的不夠, 但register area 只要在 retention memory 的範圍內, 其實不需要 sleep manager 幫忙restore, (在 save/restore 那邊已經有對 retention memory 範圍做除外處理, 避免重覆save/restore)當初留著 register area 某方面來說是留下紀錄.現在改的是把之前在最後一步才做的處理 調整到第一步就發生作用.
+    > 
+    > for循环中i++：java中i++是先返回i的值后再自增i，所以在每次for循环时都会花费额外的内存和时间去开辟新的临时变量空间来转存，故其效率会更低。
+    for循环中++i：java中++i是直接将i自增后再返回，省去了开辟新的临时变量的额外消耗，故其效率比i++高。
+*   trace stack pollution
+    ![l1c_sleep_manager_Assert](l1c_sleep_manager_Assert.png)
+*   trace dennis 的改动
+    > [plat] add support for variable checksum area number, where area size is 0x1000
+
+### 20220607
+*   trace Ramlog Dump
+    > talog：| 113 |    7409086 | EVENT 73(115) 61(97) 0c24(3108) 00000000(0) |  34 |
+    > 用法：<font color='red'> RAMLOG(0x73, 0x61, __LINE__, fTrueIfPowerOn); </font>
+    > ```sh
+    > #define RAMLOG(ev, u8d, u16d, u32d)                                                                               \
+    > do                                                                                                                \
+    > {                                                                                                                 \
+    >     if (((ev) >= RAMLOG_EV_MAX) || (!(RAMLOG_EV_MASK & (1 << (ev)))))                                             \
+    >     {                                                                                                             \
+    >         RamLog_Basic((u8)(uintptr_t)(ev), (u8)(uintptr_t)(u8d), (u16)(uintptr_t)(u16d), (u32)(uintptr_t)(u32d));  \
+    >     }                                                                                                             \
+    > } while (0)
+    > ```
+*   FTI2C 相关meeting讨论
+*   电信入网测试讨论
+*   请教jimmy学长关于non-persistent memory的事情
+
+### 20220608
+*   trace FT_I2C code
+*   协助Ted使用LogTracer和at command查询PSM mode
+*   FT_I2C meeting with Sean, Ted, Neo
+
+### 20220609
+*   trace FT_I2C code 和 ATIO task code
+*   GWUS meeting by ethan_xu
+*   FT_I2C meeting with RFSD teams
+
+### 20220610
+*   了解L1C OSP化相关的改动
+*   了解gqueue的机制，以及xL1cPscbQueue和gqueue在使用上的区别
+*   和Kevin讨论master and slave端的修改
+*   FT_I2C meeting with Kevin
+
+### 20220613
+*   L1C bi-weekly周会
+*   生成master和slave端的image
+*   trace issue [NBIOTCOPER-2977](https://jira.realtek.com/browse/NBIOTCOPER-2977)
+
+### 20220614
+*   生成master和slave端的image with Kevin's help
+    > B2/B3 在5v3上没有出pin for I2C_1_SDA/I2C_1_SCL
+*   请教jimmy学长关于FTI2C如何和ATM接起来
+    > 使用者可以藉由 port = ATAPI_Register() 來取得 ATM logical port
+      ATAPI_Send(port, ) 去送字符給 ATM
+     ATM 內會用 ATM_RspCallback[port](response) 送出 response
+     api_port = ATAPI_Register(callback) 只要將 ATM_RspCallback[api_port] = callback
+     這樣 ATM 對 api_port 送的 response，就會變成呼叫 ATAPI 使用者的 callback(response) 了
+     使用者在自己的 callback 裡自己處理 response
+
+### 20220615
+*   整理master和slave端的patch，并改写makefile project/cooper_example/GCC-RELEASE/application.is.mk
+    > use $(FTI2C_TEST)
+*   FTI2C L1C開發整合 meeting
+*   FT_I2C meeting with Kevin, Jimmy, Ted
+    > 如何将改动放到cooper_sdk的master code里
+*   debug sib22收到后，有配置fmt2的相关resource，但是跑到vphy_ra.c会segment fault
+    > 没有copy到fmt2的resource：
+    > ```sh
+    > COPY_FIELD(pCommonConfigReq->pRadioResourceConfigCommon, &rrconfcomm,
+    > IE_T(RadioResourceConfigCommonSIB));
+    > ``` 
+    > 单独copy就能work：
+    > ```sh
+    > COPY_FIELD(pCommonConfigReq->pstruNprachConfig_v1530, RadioResourceConfigCommon_NPRACH_Config_V1530(&rrconfcomm), NPRACH_ConfigSIB_V1530_T); 
+    > ```
+
+### 20220616
+*   和Dennis 讨论jira issue [NBIOTCOPER-2980](https://jira.realtek.com/browse/NBIOTCOPER-2980)
+*   生成master和slave端的image
+    > commit 3f9c4d0d
+
+### 20220617
+*   优化 生成master和slave端的image 方式
+*   和Kevin讨论如何将FT_I2C master端把at command的内容通过ft_i2c_master_write写到mtr_tx buffer里
