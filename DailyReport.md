@@ -1442,3 +1442,24 @@
 ### 20220617
 *   优化 生成master和slave端的image 方式
 *   和Kevin讨论如何将FT_I2C master端把at command的内容通过ft_i2c_master_write写到mtr_tx buffer里
+
+### 20220620
+*   通过master那边输入ft at+cfun=0，slave这边可以正常收到了
+
+### 20220621
+*   使用ATAPI_Register和ATAPI_Send将收到的at command 传给ATM task
+
+### 20220622
+*   trace为何salve端的image，dsp没有跑起来
+    > singularity使用的ltedev_modem:focal.sif太旧
+*   协助IT处理jenkins release流程的每个step都倍数级放大的问题
+*   讨论FT I2C 相关的at command spec
+
+### 20220623
+*   请owen协助查看COPY_FIELD为何没有成功
+    > bitmask：RadioResourceConfigCommonSIB_NB_r13_PR_nprach_Config_v1530没有拉
+    > ```sh
+    > if (td->op->copy(td, struct_from, struct_to) != 0)
+    > ```
+*   handle msg from ATM
+    > [NBIoT][L1C][PHY TEST MODE] add msg handle function for ft i2c
