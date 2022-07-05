@@ -1502,3 +1502,7 @@
 *   考虑将l1c msg_task 改成osp task/sfu的可能性
 *   FT_I2C slave端将dbg_printf关掉后，master端会收不到data
     > kevin量波形有看到slave只发送了3个byte：-15
+
+### 20220705
+*   整理FT I2C milestone
+*   了解freeRTOS的queue运作机制
