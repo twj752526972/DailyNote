@@ -1463,3 +1463,42 @@
     > ```
 *   handle msg from ATM
     > [NBIoT][L1C][PHY TEST MODE] add msg handle function for ft i2c
+
+### 20220624
+*   tune FT_I2C master和slave端TX/RX buffer长度
+    > cmd length 32, read data 18
+    > 
+    > cmd不到32 bytes的部分是補0在打
+
+### 20220627
+*   L1C bi-weekly周会
+*   优化FT_I2C slave端的code
+    > 在console端以%s的形式显示
+    > 
+    > 字串比較的，改成strcmp
+
+### 20220628
+*   modem.phy.ceva 版本870197ed 将 xL1cPscbQueue 改为gqueue
+
+### 20220629
+*   和Rachel确认golden image的console端的log print出来是否会占据产测的时间
+*   jira issue [NBIOTCOPER-2993](https://jira.realtek.com/browse/NBIOTCOPER-2993)
+    > 增加RAM LOG
+
+### 20220630
+*   jira issue [NBIOTCOPER-2993](https://jira.realtek.com/browse/NBIOTCOPER-2993)
+    > local 打印enqueue和dequeue的时候，msgQueue buffer里的内容，但无法显示MsgType，只能显示address
+
+### 20220701
+*   添加FT_I2C 的token log
+*   debug gqueue中enqueue和dequeue的机制
+    > dequeue时需要将**指针的指针**传进去作为入参
+
+### 20220704
+*   请教jimmy学长如何update modem以及rebuild cdex database
+    > git fetch origin + git checkout xxxx特定版本
+    > 
+    > make -C tools/cdex/client/token_log rebuild
+*   考虑将l1c msg_task 改成osp task/sfu的可能性
+*   FT_I2C slave端将dbg_printf关掉后，master端会收不到data
+    > kevin量波形有看到slave只发送了3个byte：-15
