@@ -1506,3 +1506,17 @@
 ### 20220705
 *   整理FT I2C milestone
 *   了解freeRTOS的queue运作机制
+
+### 20220706
+*   协助miriam了解jira issue [NBIOTCOPER-2997](https://jira.realtek.com/browse/NBIOTCOPER-2997)
+*   协助casey了解primitive: MSG_LTE_PHYMAC_PDCCH_STATUS_REPORT_IND_t中的PDCCH_S_CRNTI_UL_GRANT_RETX显示是否正确
+*   Mastering_the_FreeRTOS_Real_Time_Kernel-A_Hands-On_Tutorial_Guide.pdf的第四章
+
+### 20220707
+*   Mastering_the_FreeRTOS_Real_Time_Kernel-A_Hands-On_Tutorial_Guide.pdf的第四章
+*   和Ted讨论在slave端加大tx buffer
+*   和owen讨论深圳QC的test log并整理
+
+### 20220708
+*   support extended tx buffer for slave side
+*   协助rachel跑GCF和使用serial-ctrl烧image到5v4的板子里
