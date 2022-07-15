@@ -1520,3 +1520,42 @@
 ### 20220708
 *   support extended tx buffer for slave side
 *   协助rachel跑GCF和使用serial-ctrl烧image到5v4的板子里
+
+### 20220711
+*   了解jimmy学长的改动
+    > 原本計劃是 cooper_sdk build 時產生新的 cdexdb，後來想像一個場景：
+    接到需要分析的問題，提供的 cdexdb 只是 dsp build 的，如果有 ap 的 target_ram.axf 的話
+其實資訊就足夠產生出新的 cdexdb，不如寫成一個 shell script 來 rebuild，make 時也直接用那個 shell script
+    > rebuild_cdexdb.sh中，是将target_ram.axf 中的the symbol information of AP functions 添加到 cooper_sdk/project/cooper_example/GCC-RELEASE/application_is/Debug/bin的cdexdb.tar.gz的function.h中去
+*   L1C bi-weekly周会
+*   和hendry/Sean讨论将ascii转成integer时的相关问题
+
+
+
+### 20220712
+*   [FT_I2C_AT] support ascii to integer in slave side (70%)
+*   和casey和hendry讨论关于PDCCH-subframe的定义：
+    > For NB-IoT UE, all subframes that are part of the NPDCCH search space represent PDCCH-subframes among
+all NB-IoT downlink subframes, including those which the UE is not required to monitor as specified in clause
+16.6 of TS 36.213 [2].
+    > 这边的not required to monitor是指NPDCCH candidate而不是指search space：比如在子帧n收到NPDSCH后，且UE不需要打ACK/NACK，那么UE不需要monitor子帧n+1~n+12，但这中间有可能存在NPDCCH子帧(假如T = Rmax * G配得比较小的话)
+*   深圳QC的结果整理
+    > A: 板子天线位于相同的位置：靠近过道的桌面上，
+        台风前：（3686,19）SNR优于（3686,20），有85%的概率选在（3686,19）且attach表现顺利，
+        台风后：（3686,20）SNR优于（3686,19），有70%的概率选在（3686,20）但整体的attach表现不是很顺利
+    > B: 板子天线位于不同的位置：靠近过道的桌面上 vs 靠近过道的桌面上方40~50cm处，
+        台风后：桌面上方40~50cm处看到cell（3686,20）的SNR优于 直接放在桌面上看到的SNR，且当天线位于桌面上方40~50cm处时，有95%的概率选在（3686,20）且attach表现顺利
+
+
+### 20220713
+*   [FT_I2C_AT] support ascii to integer in slave side (100%)
+*   init NPDSCH for SI at the first subframe of SI decode to avoid memory pollution when UE receive NPDCCH for paging and SI
+
+### 20220714
+*   trace jira [NBIOTCOPER-447](https://jira.realtek.com/browse/NBIOTCOPER-447)
+*   协助lizzie安装jenkins和docker image
+*   协助casey查看QC脚本的timer超时问题
+*   [FT_I2C_AT] support big-endian way in slave side
+*   查看KK305是否可以升级(包含release note)
+*   询问JY关于serial-ctrl是否可以同时给多个板子download image
+    > 應該可以起多個QC script，各自配好各自的ports，自己跑自己的都不用管別人在做什麼
