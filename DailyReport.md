@@ -1524,13 +1524,13 @@
 ### 20220711
 *   了解jimmy学长的改动
     > 原本計劃是 cooper_sdk build 時產生新的 cdexdb，後來想像一個場景：
-    接到需要分析的問題，提供的 cdexdb 只是 dsp build 的，如果有 ap 的 target_ram.axf 的話
-其實資訊就足夠產生出新的 cdexdb，不如寫成一個 shell script 來 rebuild，make 時也直接用那個 shell script
+    接到需要分析的問題，提供的 cdexdb 只是 dsp build 的，如果有 ap 的 target_ram.axf 的話，其實資訊就足夠產生出新的 cdexdb，不如寫成一個 shell script 來 rebuild，make 時也直接用那個 shell script 
     > rebuild_cdexdb.sh中，是将target_ram.axf 中的the symbol information of AP functions 添加到 cooper_sdk/project/cooper_example/GCC-RELEASE/application_is/Debug/bin的cdexdb.tar.gz的function.h中去
+    > ``` sh
+    > git update-index --chmod=+x install.sh
+    > ```
 *   L1C bi-weekly周会
-*   和hendry/Sean讨论将ascii转成integer时的相关问题
-
-
+*   和Hendry/Sean讨论将ascii转成integer时的相关问题
 
 ### 20220712
 *   [FT_I2C_AT] support ascii to integer in slave side (70%)
@@ -1545,7 +1545,6 @@ all NB-IoT downlink subframes, including those which the UE is not required to m
         台风后：（3686,20）SNR优于（3686,19），有70%的概率选在（3686,20）但整体的attach表现不是很顺利
     > B: 板子天线位于不同的位置：靠近过道的桌面上 vs 靠近过道的桌面上方40~50cm处，
         台风后：桌面上方40~50cm处看到cell（3686,20）的SNR优于 直接放在桌面上看到的SNR，且当天线位于桌面上方40~50cm处时，有95%的概率选在（3686,20）且attach表现顺利
-
 
 ### 20220713
 *   [FT_I2C_AT] support ascii to integer in slave side (100%)
