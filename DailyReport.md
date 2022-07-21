@@ -1559,3 +1559,29 @@ all NB-IoT downlink subframes, including those which the UE is not required to m
 *   查看KK305是否可以升级(包含release note)
 *   询问JY关于serial-ctrl是否可以同时给多个板子download image
     > 應該可以起多個QC script，各自配好各自的ports，自己跑自己的都不用管別人在做什麼
+
+### 20220715
+*   考虑如何做到SI最多同时收2~3个
+*   SR report by casey
+*   jira issue [NBIOTCOPER-3008](https://jira.realtek.com/browse/NBIOTCOPER-3008)
+    > profile cycle count in SI prepare state
+    > 将claim resource(花5000~6000 cycle count)和 set tracking(花1.2w~1.4w cycle count)拆分到两个subframe处理，以分担同一个ms的loading
+
+### 20220718
+*   考虑如何做到SI最多同时收2~3个
+    > 和casey and Emma讨论control flow
+    > 目前以SIB2/SIB22/SIB23优先，剩下的根据bitmap的顺序来进行收取
+    > SI这边的3个buffer，都要去lock NPDSCH buffer
+
+### 20220719
+*   考虑如何做到SI最多同时收2~3个
+    > coding
+*   jira issue [NBIOTCOPER-3028](https://jira.realtek.com/browse/NBIOTCOPER-3028)
+
+### 20220720
+*   jira issue [NBIOTCOPER-3035](https://jira.realtek.com/browse/NBIOTCOPER-3035)
+    > 可能会改成：CS完成后做time align，有去确认一下resource manage那边，会将原先排的resource给callback
+*   Emma有发现在l1cSiPrepare那邊,有可能pSiInternal->SiRepetitionStartTime = expectedSyncCellTime，這樣走到l1cSiWaitRepetitionStart的時候,就會來不及切到SI_PROC，另外現在也沒有攔這種超時的case
+    > 1)计算repetition start time时 都需要额外再 +1去求
+    > 2)在wait state里追加 拦截超时的assert
+    > 3) casey有发现l1cGetSiRepetitionStartTime()这个函数有bug，有可能会miss掉第一个repetition
