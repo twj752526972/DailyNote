@@ -1584,3 +1584,9 @@ all NB-IoT downlink subframes, including those which the UE is not required to m
     > 1)计算repetition start time时 都需要额外再 +1去求
     > 2)在wait state里追加 拦截超时的assert
     > 3) casey有发现l1cGetSiRepetitionStartTime()这个函数有bug，有可能会miss掉第一个repetition
+
+### 20220721
+*   jira issue [NBIOTCOPER-3049](https://jira.realtek.com/browse/NBIOTCOPER-3049)
+*   L1C Cell timing align机制调整meeting
+*   22.3.2.1, jira issue [NBIOTCOPER-1876](https://jira.realtek.com/browse/NBIOTCOPER-1876)
+*   22.4.1, jira issue [NBIOTCOPER-447](https://jira.realtek.com/browse/NBIOTCOPER-447)
