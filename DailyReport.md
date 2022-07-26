@@ -1590,3 +1590,16 @@ all NB-IoT downlink subframes, including those which the UE is not required to m
 *   L1C Cell timing align机制调整meeting
 *   22.3.2.1, jira issue [NBIOTCOPER-1876](https://jira.realtek.com/browse/NBIOTCOPER-1876)
 *   22.4.1, jira issue [NBIOTCOPER-447](https://jira.realtek.com/browse/NBIOTCOPER-447)
+
+### 20220722
+*   和miriam一起trace jira issue [NBIOTCOPER-3053](https://jira.realtek.com/browse/NBIOTCOPER-3053)
+*   L1C bi-weekly周会
+*   和casey理清jira issue [NBIOTCOPER-3049](https://jira.realtek.com/browse/NBIOTCOPER-3049)
+
+### 20220725~20220726 请假两天
+
+### 20220726 (加班)
+*   考虑如何做到SI最多同时收2~3个
+    > coding and simulation (85%)
+*   APL23 造成的 L1 / L23 介面的問題 meeting
+*   和hendry sync jira issue [NBIOTCOPER-419](https://jira.realtek.com/browse/NBIOTCOPER-419)
