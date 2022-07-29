@@ -1603,3 +1603,26 @@ all NB-IoT downlink subframes, including those which the UE is not required to m
     > coding and simulation (85%)
 *   APL23 造成的 L1 / L23 介面的問題 meeting
 *   和hendry sync jira issue [NBIOTCOPER-419](https://jira.realtek.com/browse/NBIOTCOPER-419)
+
+### 20220727
+*   jira issue [NBIOTCOPER-412](https://jira.realtek.com/browse/NBIOTCOPER-412)
+*   SD Network Central Server 汰舊換新
+    > 和Jimmy sync VScode remote的问题，ssh config中需要写成ssh manda.tang@**pankore.com**@10.22.14.26
+
+### 20220728
+*   tracking交接by Neo
+*   SDN里release无法成功的问题，需要在config里写上
+    > USER_NAME=manda.tang
+      USER_NAME_DOMAIN=manda.tang@pankore
+*   Sync lock and unlock 机制with Owen
+    > SI req--->unlock
+      serving stop SI--->unlock (by Owen: serving做SI update RRC也一定會下SI req)(所以不需要在stop SI的时候进行unlock)
+      CS finds cell--->lock
+      MIB req--->lock
+      STOP_SI_ACTIVITY--->unlock
+
+### 20220729
+*   jira issue [NBIOTCOPER-3065](https://jira.realtek.com/browse/NBIOTCOPER-3065)
+*   SI early termination by Emma
+*   commit code: lock and unlock 机制
+*   parsing出在(3640, 200)上解SI成功的talog
