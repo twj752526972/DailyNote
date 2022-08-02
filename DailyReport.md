@@ -1626,3 +1626,7 @@ all NB-IoT downlink subframes, including those which the UE is not required to m
 *   SI early termination by Emma
 *   commit code: lock and unlock 机制
 *   parsing出在(3640, 200)上解SI成功的talog
+
+### 20220801
+*   jira issue [NBIOTCOPER-3064](https://jira.realtek.com/browse/NBIOTCOPER-3064)
+*   SI early termination (85%)
