@@ -1630,3 +1630,8 @@ all NB-IoT downlink subframes, including those which the UE is not required to m
 ### 20220801
 *   jira issue [NBIOTCOPER-3064](https://jira.realtek.com/browse/NBIOTCOPER-3064)
 *   SI early termination (85%)
+
+### 20220802
+*   SI early termination (95%)
+    > need to free the related memory when SI_DONE
+*   RESOURCE MANAGE: add conflict type in callback function
