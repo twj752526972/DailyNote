@@ -1635,3 +1635,14 @@ all NB-IoT downlink subframes, including those which the UE is not required to m
 *   SI early termination (95%)
     > need to free the related memory when SI_DONE
 *   RESOURCE MANAGE: add conflict type in callback function
+
+### 20220803
+*   SI parallel receive (85%)
+    > need to consider the SI state transfer delay (6ms)
+*   协助casey查看QC log中为何NAS没有retry
+    > QC script会捕捉== Boot Loader ==
+
+### 20220804
+*   jira issue [NBIOTCOPER-3078](https://jira.realtek.com/browse/NBIOTCOPER-3078)
+*   jira issue [NBIOTCOPER-415](https://jira.realtek.com/browse/NBIOTCOPER-415)
+*   timing align after CS and background MIB
