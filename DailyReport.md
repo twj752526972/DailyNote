@@ -1646,3 +1646,8 @@ all NB-IoT downlink subframes, including those which the UE is not required to m
 *   jira issue [NBIOTCOPER-3078](https://jira.realtek.com/browse/NBIOTCOPER-3078)
 *   jira issue [NBIOTCOPER-415](https://jira.realtek.com/browse/NBIOTCOPER-415)
 *   timing align after CS and background MIB
+
+### 20220805
+*   和Claire讨论SI early termination的问题
+*   SI early termination sync meeting by Claire
+*   和Sean sync FT_I2C 的data格式
