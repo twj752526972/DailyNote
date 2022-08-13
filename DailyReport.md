@@ -1651,3 +1651,46 @@ all NB-IoT downlink subframes, including those which the UE is not required to m
 *   和Claire讨论SI early termination的问题
 *   SI early termination sync meeting by Claire
 *   和Sean sync FT_I2C 的data格式
+
+### 20220808
+*   L1C bi-weekly周会
+*   协助casey在SDN内build image for MP mode
+    > build cooper_sdk也需要进singularity
+*   请教Claire关于reset SNR_IIRTime，sto_IIRTime，cfo_IIRTime的问题
+    > NRS 的variance有reset IIRtime，以及CFO_iiRtime+STO_IIRtime(不包含NSSS_tracking的结果，只有NRS_tracking的结果)
+    > NSSS 的variance只有reset IIRtime，没有reset CFO_iiRtime+STO_IIRtime(包含了NSSS_tracking)，此时会发现低于-15dB的曲线异常，tracking爆掉了
+    > NSSS 的variance有reset IIRtime，以及CFO_iiRtime+STO_IIRtime(包含了NSSS_tracking)，此时会发现低于-15dB的曲线就正常了
+    >> low snr本来NRS和NSSS 的CFO STO算的就不准，实际补成什么样子，不太好说，
+    >> 这边只是模拟如果tracking不补偏或者tracking off，仿真看起来low snr还是正常的，實際應用是不reset IIRtime_CFO, IIRtime_STO
+
+### 20220809
+*   jira issue [NBIOTCOPER-3089](https://jira.realtek.com/browse/NBIOTCOPER-3089)
+    > 目前采用L1C task自行等待1ms的方式，让msg task有机会做完，shall fix by 0f2a2ab5。
+*   jira issue [NBIOTCOPER-3070](https://jira.realtek.com/browse/NBIOTCOPER-3070)
+    > 由于底层已经启动了background SIB1，表明系统时间已经不对了，此时foreground MIB不应该再做，现调整resource priority，使background SIB1优先做完，fix by f2a089ec。
+    > assert时还看到一笔没有及时停掉的SI task(有看到上层很早之前就下发了stop req)，这是因为L1C的bug没停的掉，已经fix by 4080b7a7。
+
+### 20220810
+*   jira issue [NBIOTCOPER-415](https://jira.realtek.com/browse/NBIOTCOPER-415)
+    > 和Emma/Ted确认醒来后L1C miss掉paging的原因
+    > ![22.5.18_597_miss_paging](22.5.18_597_miss_paging.png)
+    > 17472	66.621887	66621 [L1SM] slow timer rate 73302645, sleep at (0x000207f8, 709), wakeup at (0x00025556, 157), slow count 405603
+      17514	66.630249	66630 [L1C] (9, 341, 6) Init: stateAttribute 183, task list 0x0, carrier state 0
+      17529	66.631408	66631 [PHY] (9, 342, 5) start task 0x20000, task list 0x20000, carrier state 0
+      这边0x00025556是9/341/6，说明醒来时timing到了9/341/6，中间L1C进行init花了9ms (66621 - > 66630)，没有机会去update L1C system time，但硬体还在count，所以会发现subframe值前进了1ms (66630 -> 66631)，L1C的时间就跳了9ms (9, 341, 6 -> 9, 342, 5)
+
+*   jira issue [NBIOTCOPER-3070](https://jira.realtek.com/browse/NBIOTCOPER-3070)
+    > 关掉一笔tracking的talog
+*   在test mode下收到AT^TESTOFF，需要关闭FTRX task
+*   handle同一子帧收到stop si req (type = 0)和mib req，增加waitPendingMibReq的机制
+
+### 20220811 (加班)
+*   jira issue [NBIOTCOPER-410](https://jira.realtek.com/browse/NBIOTCOPER-410)
+*   请教jimmy学长在boot dsp时，kick WDT的相关改动
+    > 當所有的 task 都不在 ready list，會輪到 idle task，它就會 kick WDT，讓 WDT 不會 reset system；
+    > 如果 DSP 不省人事，CC handshake 不會完成，AP CC send 不會嚐試送 message 到 DSP，它還卡在 handshake 階段
+    > 那個 commit 實作出的東西: 是 KM4 boot dsp 後，透過 api 讓 idle task 踢不到 WDT，如果一來，時間拖久了，WDT reset 就會發生;一旦 KM4 有進了 mailbox isr，表示 dsp 有動作,就透過 api 讓 idle task 可以踢到 WDT
+    > 备注：tick和kick WDT分别是：tick是改写guard timer的时长，并且刷新counter；kick是不改写guard timer的长度，直接刷新counter
+
+### 20220812 (加班)
+*   jira issue [NBIOTCOPER-2984](https://jira.realtek.com/browse/NBIOTCOPER-2984)
