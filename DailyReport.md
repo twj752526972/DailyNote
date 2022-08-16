@@ -1698,3 +1698,16 @@ all NB-IoT downlink subframes, including those which the UE is not required to m
 ### 20220813 (加班)
 *   jira issue [NBIOTCOPER-3090](https://jira.realtek.com/browse/NBIOTCOPER-3090)
     > 由于过早地resume了SI task，触发了该assert，需等到SET_SYSTEM_TIME_DONE时，再resume SI task应该可以解掉这个issue。
+
+### 20220814
+*   jira issue [NBIOTCOPER-3094](https://jira.realtek.com/browse/NBIOTCOPER-3094)
+*   token in release
+*   Sync with Ted about jira issue [NBIOTCOPER-3090](https://jira.realtek.com/browse/NBIOTCOPER-3090)
+    > 评估是否要拿掉assert还是选择等到SET_SYSTEM_TIME_DONE时，再resume SI task
+*   l1cGetCellTime是否要将hyper+super mod 1024
+
+### 20220815
+*   jira issue [NBIOTCOPER-3094](https://jira.realtek.com/browse/NBIOTCOPER-3094)
+*   jira issue [NBIOTCOPER-3095](https://jira.realtek.com/browse/NBIOTCOPER-3095)
+*   jira issue [NBIOTCOPER-3098](https://jira.realtek.com/browse/NBIOTCOPER-3098)
+    > Sync with Emma
