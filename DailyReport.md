@@ -1701,7 +1701,8 @@ all NB-IoT downlink subframes, including those which the UE is not required to m
 
 ### 20220814
 *   jira issue [NBIOTCOPER-3094](https://jira.realtek.com/browse/NBIOTCOPER-3094)
-*   token in release
+*   add token in SDN release
+    > singularity exec --bind /home/work /home/work/jenkins/singularity/toolbox.simg /home/work/jenkins/realtek_release.stable/realtek_release.py -d /home/rtkbf/manda.tang/Temp/release_test --user manda.tang@pankore.com --token 9e3e4a31e69c4893ae62622d5c212561
 *   Sync with Ted about jira issue [NBIOTCOPER-3090](https://jira.realtek.com/browse/NBIOTCOPER-3090)
     > 评估是否要拿掉assert还是选择等到SET_SYSTEM_TIME_DONE时，再resume SI task
 *   l1cGetCellTime是否要将hyper+super mod 1024
