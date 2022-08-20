@@ -1699,7 +1699,7 @@ all NB-IoT downlink subframes, including those which the UE is not required to m
 *   jira issue [NBIOTCOPER-3090](https://jira.realtek.com/browse/NBIOTCOPER-3090)
     > 由于过早地resume了SI task，触发了该assert，需等到SET_SYSTEM_TIME_DONE时，再resume SI task应该可以解掉这个issue。
 
-### 20220814
+### 20220815
 *   jira issue [NBIOTCOPER-3094](https://jira.realtek.com/browse/NBIOTCOPER-3094)
 *   add token in SDN release
     > singularity exec --bind /home/work /home/work/jenkins/singularity/toolbox.simg /home/work/jenkins/realtek_release.stable/realtek_release.py -d /home/rtkbf/manda.tang/Temp/release_test --user manda.tang@pankore.com --token 9e3e4a31e69c4893ae62622d5c212561
@@ -1707,8 +1707,46 @@ all NB-IoT downlink subframes, including those which the UE is not required to m
     > 评估是否要拿掉assert还是选择等到SET_SYSTEM_TIME_DONE时，再resume SI task
 *   l1cGetCellTime是否要将hyper+super mod 1024
 
-### 20220815
+### 20220816
 *   jira issue [NBIOTCOPER-3094](https://jira.realtek.com/browse/NBIOTCOPER-3094)
 *   jira issue [NBIOTCOPER-3095](https://jira.realtek.com/browse/NBIOTCOPER-3095)
 *   jira issue [NBIOTCOPER-3098](https://jira.realtek.com/browse/NBIOTCOPER-3098)
-    > Sync with Emma
+    > Sync with Emma，天線數未知的情況才去清common path config (rv.55ddd60c)，避免common path使用到NULL pointer
+
+### 20220817
+*   timing align 机制调整meeting
+*   wireshark-static in windows
+*   FTI2C
+    > support AT^TESTOFF
+    > 和Kevin讨论 5v3/5v4/2v1的board type的改法：
+    >> bga_demo_ft_dut -> bga_5v4_ft_dut
+    >> PAD_DEF(GPIO_B9, UART1_RX, PULL_HIGH) -> PAD_DEF(GPIO_B7, UART1_RX, PULL_HIGH)
+    >> PAD_DEF(GPIO_D0, I2C_1_SDA, PULL_HIGH) -> PAD_DEF(GPIO_A3,  I2C_0_SDA, PULL_HIGH)
+    >> PAD_DEF(GPIO_D1, I2C_1_SCL, PULL_HIGH) -> PAD_DEF(GPIO_A4,  I2C_0_SDA, PULL_HIGH)
+    >> PAD_DEF(GPIO_B5,  GPIO_MCU_18, PULL_NONE) -> 删除
+    >> FUNC_DEF(GPIO_MCU, BOOSTER, PAD_B5) -> 删除
+
+### 20220818
+*   timing align 机制调整meeting
+    > background MIB/SIB1 fail以后，也需要做time align的理由是：idle 下的task空出来max duration，如果不通过time align去撞掉resource，会导致background MIB/SIB1在SNR没那么差的时候提前做完，但idle task会一直等max duration的到来才会重排RX
+    > 顺路讨论jira issue [NBIOTCOPER-3098](https://jira.realtek.com/browse/NBIOTCOPER-3098)的解法
+*   jira issue [NBIOTCOPER-3108](https://jira.realtek.com/browse/NBIOTCOPER-3108)
+    > mib解完，回报上层，但是没有清掉rx common path config，
+    > (896, 575, 4)上层下get sib1 req，调整了mdl，
+    > (896, 575, 5) tracking update result的时候，发现找不到cell而assert
+*   L1C bi-weekly周会
+
+### 20220819
+*   timing align 机制调整
+    > 1.和casey review code，tracking这边需要考虑intra cs的时候delay为2340ms
+    > 2.rxToRxInterval vs (trackCsInterval && trackCsTimeStampValid == TRUE)的关系，需要注意的是：当rxToRxInterval > 5.12s时，如果trackCsTimeStampValid == FALSE，也要做tracking cs
+*   和Ted讨论repo repository在workspace中的摆放位置
+    > 需要练习使用Ted提供的脚本
+    > 必须做symbolic link，因为是在modem.base底下build image，要能够看到protected folder下的档案
+*   jira issue [NBIOTCOPER-3098](https://jira.realtek.com/browse/NBIOTCOPER-3098)
+    > fix memory leak issue in MIB task
+*   sanity fail
+    > id_3795: cell 326 上 NPDSCH decode fail，ping reply收不到
+    > id_3796: cell 326 上 SI decode fail，SNR一路掉
+    > id_3797: 由于freq scan报上来的结果earfcn 9454排在比较后面，RRC没有机会让底层在这个频点上find cell，导致NAS启动了PLMN search，之后ACT_REQ带的是4-6-6-1-2而不是4-6-6-0-1，被attach reject
+    > id_3798: 受到上一轮的影响，ACT_REQ带的是4-6-6-1-2而不是4-6-6-0-1，被attach reject
