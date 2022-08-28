@@ -1750,3 +1750,35 @@ all NB-IoT downlink subframes, including those which the UE is not required to m
     > id_3796: cell 326 上 SI decode fail，SNR一路掉
     > id_3797: 由于freq scan报上来的结果earfcn 9454排在比较后面，RRC没有机会让底层在这个频点上find cell，导致NAS启动了PLMN search，之后ACT_REQ带的是4-6-6-1-2而不是4-6-6-0-1，被attach reject
     > id_3798: 受到上一轮的影响，ACT_REQ带的是4-6-6-1-2而不是4-6-6-0-1，被attach reject
+
+### 20220822
+*   jira issue [NBIOTCOPER-3113](https://jira.realtek.com/browse/NBIOTCOPER-3113)
+*   和Ted sync关于FTI2C中大小写的问题
+    > master端会根据大写的string compare出来的结果去设定read length，导致小写没办法去下read command，在大写trigger一次把read length的值改掉才能正常使用(需要修正为每次都需要reset read length，ToDo)
+
+### 20220823
+*   jira issue [NBIOTCOPER-3115](https://jira.realtek.com/browse/NBIOTCOPER-3115)
+*   和Ted sync关于FTI2C中大小写的问题
+    > slave 在设定write_length的时候，ftcfo和fttx 这两个是根据 phy回给atm的结果(固定都是大写)才设定 length的，fttestoff和ftrx是根据slave的rx buffer里的内容 设定length，所以有一旦有小写，就会出问题
+    > 后续应该统一用一个api去maintain，直接根据 slave rx buffer里的值去设定，只要master tx 那边负责将大小写统一了，就可以了(ToDo)
+
+### 20220824
+*   和casey sync关于cell lost in tracking的具体实现
+*   jira issue [NBIOTCOPER-3120](https://jira.realtek.com/browse/NBIOTCOPER-3120)
+*   jira issue [NBIOTCOPER-3121](https://jira.realtek.com/browse/NBIOTCOPER-3121)
+*   jira issue [NBIOTCOPER-3117](https://jira.realtek.com/browse/NBIOTCOPER-3117)
+*   jira issue [NBIOTCOPER-3122](https://jira.realtek.com/browse/NBIOTCOPER-3122)
+
+### 20220825
+*   support backoff timer in VPHY
+*   协助JY使用SDN release in ssh way
+*   jira issue [NBIOTCOPER-3123](https://jira.realtek.com/browse/NBIOTCOPER-3123)
+*   jira issue [NBIOTCOPER-3127](https://jira.realtek.com/browse/NBIOTCOPER-3127)
+*   jira issue [NBIOTCOPER-3124](https://jira.realtek.com/browse/NBIOTCOPER-3124)
+*   jira issue [NBIOTCOPER-415](https://jira.realtek.com/browse/NBIOTCOPER-415)
+*   请假半天
+
+### 20220826 (请假一天)
+
+### 20220827 (加班)
+*   support SI early termination and cell lost in tracking
