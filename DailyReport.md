@@ -1782,3 +1782,32 @@ all NB-IoT downlink subframes, including those which the UE is not required to m
 
 ### 20220827 (加班)
 *   support SI early termination and cell lost in tracking
+
+### 20220829
+*   和casey讨论SI early termination，如何计算ratio的问题
+*   SI early termination这边也需要做成从平滑的window去看NSSS SNR的变化
+
+### 20220830
+*   和casey讨论tracking cell lost，何时reset tracking的nsss info，主要是解决换cell和从idle进入connected的场景
+    > mib req时，如果是neighbor cell，清掉nsss info，serving cell不reset是考虑到系统消息更新的场景，这时候就一直在idle下monitor NSSS的SNR
+    > idle进入connected，也进行reset
+*   Luna report: NRS tracking 取代 tracking cs，对于crystal而言，L1C预期要起来RX的时间距离tStamp过去了(5.12s, 10.24s]，也即 <= 10.24s 都可以不做tracking cs；对于oscillator 还是5.12s 就做tracking cs
+
+### 20220831
+*   整理l1cTrackOpportunityCalculate() function
+*   1ms assert issue，确认tracking module的行为
+    > early termination被拉成TRUE的話, BB那邊是R0/R1/../R7都會去decode
+    > 原本rx decode結束和schedule next rx是分開兩個subframe做, 但CSS1下為了可以比較快去睡, 所以這邊擠成一個subframe去完成,印象中當初是neo量完耗電流,請Emma改的
+
+### 20220901
+*   jira issue [NBIOTCOPER-390](https://jira.realtek.com/browse/NBIOTCOPER-390)
+    > 当前tracking正在为其他module 做program的动作，确实可以不用急着preclaim。目前改法为，对于所有过来set tracking的module：
+    > 1)当下tracking正在为其他module 做program的动作，会等program做完了，再进行precliam；
+    > 2)反之，立马precliam，
+    > 预计可以省下5000cycle count
+
+### 20220902
+*   L1C bi-weekly周会
+*   讨论tracking SNR table，需要参考BB tracking补的节奏的那张table
+    > ![BB_Tracking_Table](BB_Tracking_Table.png)
+*   优化l1cTrackCsSchedule() function
