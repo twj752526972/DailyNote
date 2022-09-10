@@ -1811,3 +1811,38 @@ all NB-IoT downlink subframes, including those which the UE is not required to m
 *   讨论tracking SNR table，需要参考BB tracking补的节奏的那张table
     > ![BB_Tracking_Table](BB_Tracking_Table.png)
 *   优化l1cTrackCsSchedule() function
+
+### 20220905
+*   和Casey sync：
+    > 不做tracking cs之后改用NRS tracking，但是tStamp一旦更新的话，有可能NRS tracking也不用做了
+*   请假半天
+
+### 20220906 (请假一天)
+
+### 20220907
+*   协助Ethan使用CMW500和wd7环境
+    > 理清at port, console port, control port的关系
+    > 理清最后at+cfun=0为何不成功的原因, 不应该带--reset
+    >> wakeup UE使用的命令：
+    >> ```sh
+    >> echo '<test command="at" timeout="1"><positive>OK</positive><negative>ERROR</negative></test>' | serial-ctrl --chip-version=c-cut-esc --console-port=/dev/ttyAT0 --ctrl-port=/dev/ttyCTRL0 --aux-ctrl-port=/dev/ttyCTRL1 test --at-port=/dev/ttyAT0
+    >> ```
+*   jira issue [NBIOTCOPER-3154](https://jira.realtek.com/browse/NBIOTCOPER-3154)
+*   jira issue [NBIOTCOPER-3158](https://jira.realtek.com/browse/NBIOTCOPER-3158)
+    > 1ms assert, MIB不需要去claim resource
+*   jira issue [NBIOTCOPER-3152](https://jira.realtek.com/browse/NBIOTCOPER-3152)
+    > 和[NBIOTCOPER-2853](https://jira.realtek.com/browse/NBIOTCOPER-2853)类似
+*   jira issue [NBIOTCOPER-1501 - [NBIOT][COOPER][GCF] 22.3.2.7 fail](https://jira.realtek.com/browse/NBIOTCOPER-1501)
+
+### 20220908
+*   和Emma/Casey sync关于cell lost和SI early termination的问题
+*   和Casey sync关于reset BB的变量usIIRcounterSNR_NSSS的时机和reset tracking NSSS info的时机
+*   jira issue [NBIOTCOPER-444 - [NBIOT][COOPER][GCF] 22.3.1.5 fail](https://jira.realtek.com/browse/NBIOTCOPER-444)
+
+### 20220909
+*   enable cell lost和SI early termination
+    > fix bug, endTimeInWindow的计算需要减1, 如(0,16,0)应该为(0,15,9)
+*   jira issue [NBIOTCOPER-3155](https://jira.realtek.com/browse/NBIOTCOPER-3155)
+    > 这题是oscillator的case，所以会有unsync被拉起来，原本是做完 background time align就要拉掉这个flag，但由于 background time align被foreground time align忽略，导致没有清掉 trigger CS的flag，当再次排paging时，还会做tracking cs
+*   学习使用c_cpp_properties.json，将c_cpp_properties.json和compile_commands.json档案都copy到Code/.vscode底下，并进行如下配置：
+    > ![c_cpp_properties.json](c_cpp_properties_json.png)
