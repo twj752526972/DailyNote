@@ -1868,3 +1868,13 @@ all NB-IoT downlink subframes, including those which the UE is not required to m
     > 在收多个SI时，漏清掉SI internal里的attempt count，导致在不预期的时间点开始评估
 *   jira issue [NBIOTCOPER-3179](https://jira.realtek.com/browse/NBIOTCOPER-3179)
     > tracking preclaim flow，笔误造成这边tracking 还在为nprach 预排，并且claim resource
+
+### 20220916
+*   jira issue [NBIOTCOPER-415](https://jira.realtek.com/browse/NBIOTCOPER-415)
+    > without 32k crystal的板子会比较容易遇到这个问题，但有32k crystal的板子在实际场景中也会遇到，但需要满足的条件如下：
+    >> 1)前一次cs看到subframe offset，启动 background MIB/SIB1
+    >> 2)下一次paging的地方要很远(大于5.12s)，使得tracking已经预排了一笔cs
+*   jira issue [NBIOTCOPER-3184](https://jira.realtek.com/browse/NBIOTCOPER-3184)
+    > 同一子帧收到delete sfn req和reset L1C req，由于先run到stop L1C task，会将track internal清空，后续l1c timer abort tracking时发现资讯被清掉而assert。
+*   jira issue [NBIOTCOPER-3185](https://jira.realtek.com/browse/NBIOTCOPER-3185)
+    > MIB content是invalid，没有unlock resource。
