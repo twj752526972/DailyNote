@@ -1846,3 +1846,25 @@ all NB-IoT downlink subframes, including those which the UE is not required to m
     > 这题是oscillator的case，所以会有unsync被拉起来，原本是做完 background time align就要拉掉这个flag，但由于 background time align被foreground time align忽略，导致没有清掉 trigger CS的flag，当再次排paging时，还会做tracking cs
 *   学习使用c_cpp_properties.json，将c_cpp_properties.json和compile_commands.json档案都copy到Code/.vscode底下，并进行如下配置：
     > ![c_cpp_properties.json](c_cpp_properties_json.png)
+
+### 20220913
+*   [NBIOTCOPER-447 - [NBIOT][COOPER][GCF] 22.4.1 fail](https://jira.realtek.com/browse/NBIOTCOPER-447)
+    > 仪器问题，NPDSCH for paging的位置计算错误，把子帧4 count了进去
+*   jira issue [NBIOTCOPER-3164](https://jira.realtek.com/browse/NBIOTCOPER-3164)
+*   trace RRM log
+    > 会看到token log有时候没有印，这是因为在实际收SI时，repetition 结束以后，就不会再压tracking，也就不会再有任何module 去claim resource，导致睡下去，因为at^sleepmode=0，会进到power state 1，就一直停在idle task，不会切到L1C task，导致没有印log
+*   [NBIOTCOPER-3167](https://jira.realtek.com/browse/NBIOTCOPER-3167)
+    > resource conflict时SI abort tracking，但SI internal已经为空，拿到为0的tracking index去abort
+
+### 20220914
+*   jira issue [NBIOTCOPER-3167](https://jira.realtek.com/browse/NBIOTCOPER-3167)
+*   和casey trace jira issue [NBIOTCOPER-3169](https://jira.realtek.com/browse/NBIOTCOPER-3169)
+    > intra cs做完发现有subframe offset，启动background MIB，猜测后续trackingByReq的state被切走，导致background MIB没做成功，后续get sfn下来，启动tracking cs，再次启动background MIB时，发现之前还留有一笔background MIB没做而assert
+*   jira issue [NBIOTCOPER-3178](https://jira.realtek.com/browse/NBIOTCOPER-3178)
+    > gain突然調整很大,因此有reset common path,reset完的第一筆收進來的rx訊號太小，導致lCommonPathEq的運算遇到div 0
+
+### 20220915
+*   jira issue [NBIOTCOPER-3164](https://jira.realtek.com/browse/NBIOTCOPER-3164)
+    > 在收多个SI时，漏清掉SI internal里的attempt count，导致在不预期的时间点开始评估
+*   jira issue [NBIOTCOPER-3179](https://jira.realtek.com/browse/NBIOTCOPER-3179)
+    > tracking preclaim flow，笔误造成这边tracking 还在为nprach 预排，并且claim resource
