@@ -1878,3 +1878,34 @@ all NB-IoT downlink subframes, including those which the UE is not required to m
     > 同一子帧收到delete sfn req和reset L1C req，由于先run到stop L1C task，会将track internal清空，后续l1c timer abort tracking时发现资讯被清掉而assert。
 *   jira issue [NBIOTCOPER-3185](https://jira.realtek.com/browse/NBIOTCOPER-3185)
     > MIB content是invalid，没有unlock resource。
+
+### 20220926
+*   trace jira issue when five days off
+*   jira issue [NBIOTCOPER-3196](https://jira.realtek.com/browse/NBIOTCOPER-3196)
+    > 重新camp on cell后上层应该要先发delete timer req，再发送 common config setup
+*   tidy up OPTIMIZE_CSS1_RF_ON_DURATION_v2 的flow
+*   L1C bi-weekly周会
+
+### 20220927
+*   jira issue [NBIOTCOPER-390 22.2.5 fail](https://jira.realtek.com/browse/NBIOTCOPER-390)
+    > 增加提前tracking的子帧数，先确认是否是 tracking不够的原因导致
+*   [QC] disable check script in check_l1c.sh
+*   [TRACK] modify the API about l1cOptimizePagingReceive
+
+### 20220928
+*   NRS tracking 取代 cs search version 1
+*   jira issue [NBIOTCOPER-3196](https://jira.realtek.com/browse/NBIOTCOPER-3196)
+    > MMC reset GC之后，reset PHY之前，RRC开启modification timer
+*   Optimize paging receiving meeting with BB
+
+### 20220929
+*   NRS tracking 取代 cs search version 2
+    > 和casey讨论，并修正bug
+*   R15 SR report by casey
+*   Optimize paging receiving meeting with BB
+
+### 20220930
+*   NRS tracking 取代 cs search version 3
+    > 增加token log
+*   和Emma sync关于non anchor carrier上收paging时，需要tracking的NRS子帧个数
+*   NBIOT report by zhangyi
