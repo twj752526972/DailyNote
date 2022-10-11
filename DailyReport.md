@@ -1909,3 +1909,18 @@ all NB-IoT downlink subframes, including those which the UE is not required to m
     > 增加token log
 *   和Emma sync关于non anchor carrier上收paging时，需要tracking的NRS子帧个数
 *   NBIOT report by zhangyi
+
+### 20221008
+*   验证NRS tracking 取代 cs search
+*   协助zhangyi使用SDN，不再需要在SDN内部针对repo做symbol link
+    > 不再需要做：ln -s /SDLC/work/git-repo/repo ~/.local/bin/repo
+
+### 20221009
+*   验证NRS tracking 取代 cs search
+    > 在preamble前hard code backoff timer，使得firstOccasion有机会改变
+    > 优化function，只在now = firstOccasion - 3的时候check，之后不再需要check
+
+### 20221010
+*   验证NRS tracking 取代 cs search
+*   tidy up code
+*   在.h中增加__cdex("<namedconstant name='enum_type'/>") for enum
