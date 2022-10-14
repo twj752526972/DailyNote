@@ -1943,3 +1943,8 @@ all NB-IoT downlink subframes, including those which the UE is not required to m
 *   jira issue [NBIOTCOPER-3207](https://jira.realtek.com/browse/NBIOTCOPER-3207)
     > 需要考虑precliam和track buffer valid都要置为FALSE
 *   Ubiik入网GCF case清查
+
+### 20221014
+*   L1C bi-weekly周会
+*   验证SI parallel receive flow
+    > 收完某个SI后/超过endTimeInWindow这两种条件下，都需要停止evaluate，预留出update startTimeInWindow和endTimeInWindow的offset
