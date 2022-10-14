@@ -1924,3 +1924,22 @@ all NB-IoT downlink subframes, including those which the UE is not required to m
 *   验证NRS tracking 取代 cs search
 *   tidy up code
 *   在.h中增加__cdex("<namedconstant name='enum_type'/>") for enum
+
+### 20221011
+*   验证SI parallel receive flow
+    > 需要考虑attempt count和max iteration count
+*   fix compile error when phy test mode is enable
+
+### 20221012
+*   验证SI parallel receive flow
+    > 需要更新endTimeInWindow
+*   jira issue [NBIOTCOPER-3207](https://jira.realtek.com/browse/NBIOTCOPER-3207)
+    > 和casey讨论相关解法
+*   fix compile error
+
+### 20221013
+*   验证SI parallel receive flow
+    > 在SI_PREPARE state下去更新early terminate info 的startTimeInWindow 和 endTimeInWindow
+*   jira issue [NBIOTCOPER-3207](https://jira.realtek.com/browse/NBIOTCOPER-3207)
+    > 需要考虑precliam和track buffer valid都要置为FALSE
+*   Ubiik入网GCF case清查
