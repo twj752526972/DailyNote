@@ -1948,3 +1948,33 @@ all NB-IoT downlink subframes, including those which the UE is not required to m
 *   L1C bi-weekly周会
 *   验证SI parallel receive flow
     > 收完某个SI后/超过endTimeInWindow这两种条件下，都需要停止evaluate，预留出update startTimeInWindow和endTimeInWindow的offset
+
+### 20221017
+*   WUS discuss meeting by lizzie
+*   trace L1C code flow关于如何计算paging candidate
+
+### 20221018
+*   jira issue [NBIOTCOPER-3215](https://jira.realtek.com/browse/NBIOTCOPER-3215)
+*   jira issue [NBIOTCOPER-3216](https://jira.realtek.com/browse/NBIOTCOPER-3216)
+*   jira issue [NBIOTCOPER-3219](https://jira.realtek.com/browse/NBIOTCOPER-3219)
+*   jira issue [NBIOTCOPER-3221](https://jira.realtek.com/browse/NBIOTCOPER-3221)
+
+### 20221019
+*   和Ted讨论SRAM0不够的问题，Dennis有commit一版5f8c404b，可以最大化地保证DSP这边build过，多下来的空间再adaptive给KM4使用
+*   和Owen讨论QC的CMCC ping全部fail的问题
+    > address有问题，需要在parameter setting中改为export PingAddrIpv4CMCC="180.101.49.14"
+
+### 20221020
+*   support harris.yin关于如何在SDN里trigger jenkins
+*   build FTI2C的image
+*   向jimmy学长请教如何使用taco with vscode jdb adaptor
+    > 看起来"args": ["--command=core.init"]在launch.json中没有生效
+*   验证calculate_PO.patch，看起来不加patch时就会容易遇到1ms assert和
+    plat_wdt.c:52 watchdog barks的问题
+
+### 20221021
+*   QFN的板子如果download了FLASH_SIZE=32Mb的image，有可能需要重新K
+*   support zy_zhang 如何build image
+*   和JY讨论cargo install时带账户和密码遇到问题
+    > http://'manda.tang':'rs68585%23'@172.26.5.129/jy.hsu/taco.git
+    > 有些字眼在URL要escape，如&%#!"'\
