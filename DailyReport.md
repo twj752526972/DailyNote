@@ -1978,3 +1978,39 @@ all NB-IoT downlink subframes, including those which the UE is not required to m
 *   和JY讨论cargo install时带账户和密码遇到问题
     > http://'manda.tang':'rs68585%23'@172.26.5.129/jy.hsu/taco.git
     > 有些字眼在URL要escape，如&%#!"'\
+
+### 20221024
+*   jira issue [NBIOTCOPER-3226](https://jira.realtek.com/browse/NBIOTCOPER-3226)
+*   jira issue [NBIOTCOPER-3227](https://jira.realtek.com/browse/NBIOTCOPER-3227)
+*   jira issue [NBIOTCOPER-3229](https://jira.realtek.com/browse/NBIOTCOPER-3229)
+*   support zy_zhang 如何使用FTI2C 板子和验证image是否可以work
+*   学习jimmy学长的command
+    > tshark -Y "ta_frame.msg.token.token == 4188" -r 22.3.1.5_729.talog -Tfields -Eheader=y -Eseparator=<font color='red'>"|"</font> -e _ws.col.Dummy1 -e frame.number -e ta_frame.tick -e _ws.col.Info -e _ws.col.Dummy2 -e _ws.col.Dummy3
+
+### 20221025
+*   tidy up the API about l1cGetRxSyncDelayInSubframe
+*   [MIB] query tracking module with expectedSyncTime
+*   sanity fail
+    > git revert -n rv.1 + git revert -n rv.2
+    > 通过-n 可以连续revert多个版本
+
+### 20221026
+*   add OPTIMIZE_TRACKING_CS_TO_RELAX_1MS flow
+*   tidy up the API about l1cGetRxSyncDelayInSubframe
+*   和owen讨论sanity fail的问题
+    > FET的papr时高时低，jira id[NBIOTCOPER-3239](https://jira.realtek.com/browse/NBIOTCOPER-3239)
+
+### 20221027
+*   add OPTIMIZE_TRACKING_CS_TO_RELAX_1MS flow
+*   jira issue [NBIOTCOPER-3241](https://jira.realtek.com/browse/NBIOTCOPER-3241)
+*   使用windows的wireshark
+    > 把vcruntime104d.zip的東西放在C:\Windows\System32
+    > 用debug版的plugins放在C:\Users\manda.tang\AppData\Roaming\Wireshark\plugins
+    > wireshark-rtk-ta.windows-1.6.cdex-1.10.debug 搭配 vcruntime104d.zip
+*   学习如何抓CMW500 log
+    > 路径在：D:\Rohde-Schwarz\CMW\Log\3.8.10\2022-10-26_12-44-21\nbiotue_sig2\session00\dump00
+    > 执行顺序为：先点step 1，等cell on了以后log dump，停止抓log时就点step2
+    ![dump_CMW500_log](dump_CMW500_log.png)
+    > keep RRC connection 不勾，就能release回到idle
+*   学习如何在installation manager里面下载release note
+    > ![CMW-NBIOT_releaseNote](CMW-NBIOT_releaseNote.png)
