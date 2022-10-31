@@ -2014,3 +2014,15 @@ all NB-IoT downlink subframes, including those which the UE is not required to m
     > keep RRC connection 不勾，就能release回到idle
 *   学习如何在installation manager里面下载release note
     > ![CMW-NBIOT_releaseNote](CMW-NBIOT_releaseNote.png)
+
+### 20221028
+*   OPTIMIZE_TRACKING_CS_TO_RELAX_1MS存在side effect
+    > trace log，dedicated config set up时停掉csm task，没有清掉csForConnectedTimer这个flag
+*   [NBIOTCOPER-3245](https://jira.realtek.com/browse/NBIOTCOPER-3245)
+    > cherry-pick master上的改动到branch 4.0
+    > 学习如何使用git rebase -i HEAD~20
+*   提jira [NBIOTCOPER-3246](https://jira.realtek.com/browse/NBIOTCOPER-3246)
+*   解决windows环境下virtual box运行会导致电脑蓝屏的问题
+    > [模拟器win10系统蓝屏（冲突），如何关闭hyper-v](https://www.ldmnq.com/support/anzhuang/1209.html)
+    > 搜索“命令提示符”或“CMD”，选择“管理员身份运行”。然后在弹出来的窗口内，用“Ctrl+V”黏贴以下代码（代码：bcdedit /set hypervisorlaunchtype off）并回车运行，提示操作成功完成后，重启电脑即可。
+*   support windows wireshark的安装
