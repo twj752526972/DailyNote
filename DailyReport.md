@@ -2026,3 +2026,13 @@ all NB-IoT downlink subframes, including those which the UE is not required to m
     > [模拟器win10系统蓝屏（冲突），如何关闭hyper-v](https://www.ldmnq.com/support/anzhuang/1209.html)
     > 搜索“命令提示符”或“CMD”，选择“管理员身份运行”。然后在弹出来的窗口内，用“Ctrl+V”黏贴以下代码（代码：bcdedit /set hypervisorlaunchtype off）并回车运行，提示操作成功完成后，重启电脑即可。
 *   support windows wireshark的安装
+
+### 20221031
+*   jira issue [NBIOTCOPER-3248](https://jira.realtek.com/browse/NBIOTCOPER-3248)
+    > profile 将SI_CALCULATE这个function搬到SRAM，可以省下6000 cycle count，一个function同样放在flash，在L23AP config下(4w)和L23DSP config(3w)下，两者的速度差1.3倍，L23AP更慢，因为DSP和KM4都会去摸flash。
+*   L1C bi-weekly周会
+
+### 20221101
+*   jira issue [NBIOTCOPER-3248](https://jira.realtek.com/browse/NBIOTCOPER-3248)
+    > 将SI window end time改成在SI calculate 这个state粗略计算，这样预计可以省掉8000 cycle count，原来是22000，现在是14000，见rv.07eae254。
+    > MLAPI test验证改动后的code是否work
