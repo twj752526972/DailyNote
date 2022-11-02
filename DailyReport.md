@@ -2036,3 +2036,19 @@ all NB-IoT downlink subframes, including those which the UE is not required to m
 *   jira issue [NBIOTCOPER-3248](https://jira.realtek.com/browse/NBIOTCOPER-3248)
     > 将SI window end time改成在SI calculate 这个state粗略计算，这样预计可以省掉8000 cycle count，原来是22000，现在是14000，见rv.07eae254。
     > MLAPI test验证改动后的code是否work
+
+### 20221102
+*   tidy up SI API and enable NSSS compensate
+*   了解branch mainline_rel15 build error的问题
+    > component/soc/pk9518/cmsis/pk9518/source/GCC/pk9518_ram.ld.S
+    > ```sh
+    > #ifdef shm_sram0_end
+    > #define SRAM0_ALIGN (0x400)
+    > #define SRAM0_START ((shm_sram0_end + SRAM0_ALIGN) & (0xFFFFFFFF - > SRAM0_ALIGN + 1))
+    > #define SRAM0_END (0x200AFFFF)    
+    > SRAM0: SRAM0_START - 0x200A_FFFF
+    > SRAM0: ORIGIN = SRAM0_START, LENGTH = (SRAM0_END - SRAM0_START + 1)
+    > #endif /* #ifdef shm_sram0_end */
+    > ```
+    > cooper_sdk 的 linker script，對於 SRAM0 區段起始位址的描述是參考 exported.h 裡的 macro shm_sram0_end ，再推進到一個 1KB boundary，如果 DSP 對於 SRAM0 的使用剛好越過一個 1KB boundary，結果就是 cooper_sdk 少了 1KB 可以用，至於為何 SRAM0 要是 1KB align，暂时不清楚什么原因
+    > before：200aaffe，这个数字mod 1024 = 1022，所以只剩下2 byte，after：200ab11e
