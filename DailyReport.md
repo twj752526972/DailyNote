@@ -1075,15 +1075,15 @@
     所以他沒給這樣的表達方式
     平常做實驗用很好
 *   l23ap_dev merge to master的这一版858c23之后
-    > l23ap_dev 要 build L23AP 的方法有一點改變（未來在 master build L23AP > 也會是這個方法）
-    > 首先，DSP 的產物要放到 cooper_sdk/project/cooper_example/GCC-RELEASE/> lib/dsp_bin_l23ap
-    > cooper_sdk 的 build command 要帶個環境變數：cooper_sdk/project/> cooper_example/GCC-RELEASE$ L23AP=1 ./build_cooper_sdk_is.sh
+    > l23ap_dev 要 build L23AP 的方法有一點改變（未來在 master build L23AP也會是這個方法）
+    > 首先，DSP 的產物要放到 cooper_sdk/project/cooper_example/GCC-RELEASE/lib/dsp_bin_l23ap
+    > cooper_sdk 的 build command 要帶個環境變數：cooper_sdk/project/cooper_example/GCC-RELEASE$ L23AP=1 ./build_cooper_sdk_is.sh
     > 各位一定就可以想像了兩種 dsp build （L23DSP and L23AP）是分別放在 
     > cooper_sdk/project/cooper_example/GCC-RELEASE/lib/dsp_bin
     > cooper_sdk/project/cooper_example/GCC-RELEASE/lib/dsp_bin_l23ap
     > 
     > 環境變數 L23AP=1 的影響：
-    > CPPFLAGS += -DENABLE_L3_AP=1 -DENABLE_L2_AP=1 > -DCONFIG_SRAM1_RETENTION=1
+    > CPPFLAGS += -DENABLE_L3_AP=1 -DENABLE_L2_AP=1 -DCONFIG_SRAM1_RETENTION=1
     > DSP_DIR := $(LIB_DIR)/dsp_bin_l23ap
     > 會 build lib_modem_l23 and lib_modem_asn1
     > 
@@ -2052,3 +2052,184 @@ all NB-IoT downlink subframes, including those which the UE is not required to m
     > ```
     > cooper_sdk 的 linker script，對於 SRAM0 區段起始位址的描述是參考 exported.h 裡的 macro shm_sram0_end ，再推進到一個 1KB boundary，如果 DSP 對於 SRAM0 的使用剛好越過一個 1KB boundary，結果就是 cooper_sdk 少了 1KB 可以用，至於為何 SRAM0 要是 1KB align，暂时不清楚什么原因
     > before：200aaffe，这个数字mod 1024 = 1022，所以只剩下2 byte，after：200ab11e
+
+### 20221103
+*   jira issue [NBIOTCOPER-3251](https://jira.realtek.com/browse/NBIOTCOPER-3251)
+    > 当下get rsrp req，trigger cs，误拿了timer作为 sync type去claim cs resource
+*   在branch r15上，SRAM0爆掉了，
+    > 关掉MP mode的code，作为work around
+*   和Ted讨论如何缩code size
+    > 可以考虑将code变为data的意思是说：将msg task里用到的msg Id这些，刻成table，但由于msg id的range太大了，可能不可取
+    > 将没那么critical的msg req搬到flash去处理
+*   和jimmy学长请教r15 branch memory不夠用的話，先縮小一點點L2 retention heap應急
+    > heap 有兩個non-persistent and persistent，
+L2 retention heap，也可以說是 KM4 的 retention heap，
+configTOTAL_HEAP_SIZE 是 non-persistent heap size
+    > ```sh
+    > component/os/freertos/freertos_v10.1.1/portable/MemMang/heap_5.c
+    > __ALIGNED(32) static unsigned char ucHeap[ configTOTAL_HEAP_SIZE ];
+    > RETENTION_HEAP __ALIGNED(32) unsigned char ucHeap_persistent[ RETENTION_HEAP_SIZE ];
+    > ```
+    > sram0 不是 retention memory，sram1 才是retention memory，要讓 KM4 少用 sram0
+
+### 20221104
+*   和jimmy学长请教r15 branch memory不夠用的話，讓 KM4 少用 sram0
+    > component/soc/pk9518/cmsis/pk9518/source/GCC/pk9518_ram.ld.S:942
+    > ```sh
+    > __sram0_2_bss_start__ = .;
+    > // lib/lib_modem.a:*.o(.bss*)，这样改會有一堆 lib_modem.a 裡的 bss 被放到 KM4 自己的 RAM，而不會佔 SRAM0
+    > *(.sram0.2.bss*)
+    > __sram0_2_bss_end__ = .; 做完af854--->aec00 = 3156 byte
+    > ```
+    > 修改的部分也就用#ifdef ENABLE_3GPP_R15來包
+pk9518_ram.ld.S 有用 pre-processor 處理，有帶進 CPPFLAGS
+    > ```sh
+    > project/cooper_example/GCC-RELEASE/application.is.mk:566
+    > $(TARGET_LD) : $(TARGET_LD_SRC)
+    > mkdir -p $(dir $@)
+    > $(CPP) -MT $@ $(CPPFLAGS) $(INCLUDES) -include $(DSP_DIR)/exported.h -include ../inc/platform_opts.h -P $< -o $@
+    > ```
+    > 將 lib/lib_modem.a:*.o(.bss*) 從 SRAM0 移除
+那些東西會變成符合什麼規則被置放？
+    > ```sh
+    > .bss :
+    > {
+    > #if defined(BUILD_NONSECURE) || defined(BUILD_BOOT)
+    >     . = ALIGN(4);
+    > #else
+    >     . = ALIGN(16);
+    > #endif /* #if defined(BUILD_SECURE) ||defined(BUILD_BOOT) */
+    > __bss_start__ = .;
+    > *(.bss*)
+    > *(COMMON)
+    > #if defined(BUILD_NONSECURE) || defined(BUILD_BOOT)
+    > . = ALIGN(4);
+    > #endif /* #if defined(BUILD_NONSECURE) || defined(BUILD_BOOT) */
+    > #if !defined(BUILD_IGNORESECURE)
+    > __bss_end__ = .;
+    > #endif /* #if !defined(BUILD_IGNORESECURE) */
+    > } > DTCM_RAM
+    > ```
+    > 至少可以先看看 __bss_end__ 有沒有變化，做完会发现18--->c58 = 3136 byte
+    > ```sh
+    > .non_secure.bss :
+    > {
+    > . = ALIGN(16);
+    > __ns_bss_start__ = .;
+    > *(.nonsecure.bss*)
+    > 
+    > . = ALIGN(4);
+    > __ns_bss_end__ = .;
+    > __bss_end__ = .;
+    > } > DTCM_RAM
+    > ```
+    > 
+    > lib/lib_modem_l23.a:*.o(.data*)
+    > lib/lib_modem_l23.a:*(.bss*)
+    > 
+    > 这两个都是l23的需要放在retention memory里的（SRAM1），CONFIG_SRAM1_RETENTION=1，L23AP=1
+    > 
+    > --------------------------------------------
+    > CONFIG_USE_SRAM0=1，L23AP=1
+    > 原本lib_modem.a:*.o(.bss*) 都是放在 sram0_2_bss，
+    > 后来改成下面这些部分：
+    > ```sh
+    > lib/lib_modem.a:*rtk_rohc_*.o(.bss*)
+    > lib/lib_modem.a:*rtk_c_*.o(.bss*)
+    > ......
+    > lib/lib_modem.a:*ipfilter_core*.o(.bss*)
+    > ```
+    > 放在sram0_1_bss，此外的都放在sram0_2_bss，sram0_1_bss 和sram0_2_bss的区别是：
+    >> 因為記憶體不夠，test mode 與 normal mode 需要共享一部分記憶體，SRAMx_1_BSS_SECTION 就是 DSP 進了 test mode 會佔用掉的記憶體，這種進 test mode 的動作，KM4 不會重啟，只有 DSP 會重啟換 test mode，把 SRAMx_1_BSS_SECTION 佔用掉，也就是 SRAMx_1_BSS_SECTION 裡的資料，已經不是 KM4 以為的 bss 變數了，因此，這時 KM4 運行的 code，就必須是不會用到置放在 SRAMx_1_BSS_SECTION 的變數，這樣安排，就是將 test mode 一定不會用到 bss 變數放進 SRAMx_1_BSS_SECTION，像rtk_rohc，security，ipfilter等这些应该是 test mode时 用不到的 所以被overwrite也没关系
+    > 
+    > ---------------------------------------------
+    > 这次将lib_modem.a:*.o(.bss*) 从sram0_2_bss移除后(ENABLE_3GPP_R15)，就塞进了和客户共享的DTCM_RAM的bss
+*   和jimmy学长请教make rule
+    > ![make_rule](make_rule.png)
+    > target 是要產生出來的東西，例如 foo.o，
+    > prerequisites 通常是相關的東西，例如 foo.c，
+    > command 通常是產生出 target 的方法，例如 gcc -o foo.o foo.c，
+    > 先判斷 foo.o 存在與否，
+    > 如果沒有，找 target 為 foo.o 的 rule，執行其 command 來得到，
+    > 如果 foo.o 已經存在，找 target 為 foo.o 的 rules，看看它的 prerequisites 有沒有檔案時間比現有 foo.o 新的，
+    > 有任何一個 prerequisites 較新，就執行 command 重新產生 foo.o，
+    > 這就是為什麼不是 clean build 的場景下，只會去 compile 有更新的 .c 檔的原因，
+    > foo.o 的 rule 可能會寫這樣：
+    > foo.o : foo.c
+    > gcc -o foo.o foo.c
+    > 但經驗上應該會發現，假設 foo.c 裡有 #include "foo.h"，
+    > foo.c 沒有更新，但 foo.h 更新了，使用上 make 仍然會去 compile foo.c
+    > 但 foo.o 的 rule 並沒有將 foo.h 列進 prerequisites，
+    > 而我們也不太可能當 foo.c 多加 include 一個 header file，
+    > 就一併改寫 foo.o 的 rule，
+    > 其實這是靠 dependency file 做到的，
+    > 每次 gcc 去 compile foo.c 時，如果有下特殊 option，gcc 會伴隨產生出 dependency file 出來，這個特殊 option 是 -MMD，
+    > 舉例來說：
+    > ```sh
+    > project/cooper_example/GCC-RELEASE/lib_modem_l23/Debug/obj/modem/L23/ADAPT/adapt_osp_ceva.d
+    > 它的內容擷取如下：
+    > lib_modem_l23/Debug/obj/modem/L23/ADAPT/adapt_osp_ceva.o: \
+    > ../../../modem/L23/ADAPT/adapt_osp_ceva.c ../inc/platform_opts.h \
+    > ../inc/platform_opts_cus.h ../inc/modem_conf.h ../inc/platform_conf.h \
+    > ../inc/modem_conf.h lib/dsp_bin_l23ap/exported.h \
+    > ../../../modem/L23/ASN1/asn1c_def.h \
+    > ../../../modem/platform/include/rt_log.h \
+    > ```
+    > 其實格式上就是一個 rule，
+    > lib_modem_l23/Debug/obj/modem/L23/ADAPT/adapt_osp_ceva.o 是 target，prerequisites 是一堆 header files，
+    > 所以只要讓 make 也有看到這個 rule，
+    > prerequisites 列出的 header files 任何一個有更新的話，
+    > 它也會決定要重新產生 lib_modem_l23/Debug/obj/modem/L23/ADAPT/adapt_osp_ceva.o，
+    > 不過 dependency file 裡的 rule 並不包含 command，
+    > 所以另外要有一個 lib_modem_l23/Debug/obj/modem/L23/ADAPT/adapt_osp_ceva.o 的 rule 去定義 command，
+    > 同時得知，可以多個 rule 的 target 是同一個檔案：
+    >> foo.o 一定有個 rule 是類似這個
+    >> foo.o : foo.c
+    >> gcc -o foo.o foo.c
+    >> 而 dependency file 也會有個 target 是 foo.o 的：
+    >> foo.o: foo.c foo.h
+    >> 同樣 target 是 foo.o 的 rule 就至少有兩個，
+    > 
+    > ```sh
+    > project/cooper_example/GCC-RELEASE/application.is.mk:539
+    > DEPENDENCY_LIST = $(patsubst %.o,%.d,$(SRC_O_LIST))
+    > DEPENDENCY_LIST += $(patsubst %.ld,%.d,$(TARGET_LD))
+    > -include $(DEPENDENCY_LIST)
+    > ```
+    > 上面這一段就是想要產生出所有 dependency file 的 list，
+    > 然後用 -include 去 include 它們，（- 是忽略 list 裡的檔案不存在時的錯誤），
+    > dependency file 是 gcc compile 時一併產生出來的，
+    > 所以 clean build 時是不存在的，
+    > 如果不加 - 號，這裡就會出現錯誤，找不到需要的 include 的檔案，
+    > ```sh
+    > $(TARGET_LD) : $(TARGET_LD_SRC)
+    > mkdir -p $(dir $@)
+    > $(CPP) -MT $@ $(CPPFLAGS) $(INCLUDES) -include $(DSP_DIR)/exported.h -include ../inc/platform_opts.h -P $< -o $@
+    > ```
+    > 這個 rule 是用來從 pk9518_ram.ld.S 產生 link.ld 的，
+    > 產生的方法是用 c pre-processor 來做，
+    > pre-processor 帶 -MMD 產生出來的 dependency file 內容格式不預如期，
+    > 類似有這樣的差別，資料夾路徑消失了：
+    > ```sh
+    > lib_modem_l23/Debug/obj/modem/L23/ADAPT/adapt_osp_ceva.o: \
+    > ../../../modem/L23/ADAPT/adapt_osp_ceva.c ../inc/platform_opts.h \
+    > ../inc/platform_opts_cus.h ../inc/modem_conf.h ../inc/platform_conf.h \
+    > ../inc/modem_conf.h lib/dsp_bin_l23ap/exported.h \
+    > 與
+    > adapt_osp_ceva.o: \
+    > ../../../modem/L23/ADAPT/adapt_osp_ceva.c ../inc/platform_opts.h \
+    > ../inc/platform_opts_cus.h ../inc/modem_conf.h ../inc/platform_conf.h \
+    > ../inc/modem_conf.h lib/dsp_bin_l23ap/exported.h \
+    > ```
+    > 明明 target 是 application_is/Debug/linker.ld，
+    > dependency file 的 target 列的是 linker.ld，
+    > 沒有符合，變成一個無用處的 rule，
+    > 找了找才發現 pre-processor 要帶 -MT，
+    > CC = $(CROSS_COMPILE)gcc
+    > CPP = $(CROSS_COMPILE)gcc -E
+    > gcc 命令只要帶 -E 就會只做 preprocess，
+    > 驗證了有沒有 -E 對於產生出來的 dependency file 內容就是會不同，
+    > 沒有 -E ，就是一般 compile .c 成為 .o 時在用的命令，-MMD 產生出來的 dependency 就是預期中的長相，
+    > -E 就要用 -MT 才會得到相同長相的 dependency file。
+    > 问题一开始：
+    > exported.h 更新，但 linker.ld 沒有重新產生，一開始以為問題只是漏了 -include application_is/Debug/linker.d
