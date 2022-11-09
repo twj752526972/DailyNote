@@ -1088,7 +1088,7 @@
     > 會 build lib_modem_l23 and lib_modem_asn1
     > 
     > asn1獨立出來的原因是：
-    > lib_modem_asn1.mk 比其它 makefile 少 include exported.h，使得它們不會> 只因為 exported.h 檔案時間更新就重build
+    > lib_modem_asn1.mk 比其它 makefile 少 include exported.h，使得它們不會只因為 exported.h 檔案時間更新就重build
     > 我覺得它的檔案數量實在太多，如果獨立出來不麻煩的話可以省一點build 的時間
     > 
     > 用 jenkins cooper_sdk test-release build L23AP 可以比較方便了
@@ -2233,3 +2233,22 @@ pk9518_ram.ld.S 有用 pre-processor 處理，有帶進 CPPFLAGS
     > -E 就要用 -MT 才會得到相同長相的 dependency file。
     > 问题一开始：
     > exported.h 更新，但 linker.ld 沒有重新產生，一開始以為問題只是漏了 -include application_is/Debug/linker.d
+
+### 20221107
+*   jira issue [NBIOTCOPER-3253](https://jira.realtek.com/browse/NBIOTCOPER-3253) and jira issue [NBIOTCOPER-3232](https://jira.realtek.com/browse/NBIOTCOPER-3232)
+    > SI calculate state下花费1w7，继续offload，将这1ms的事情平摊到2ms做，每1ms花费8000~9000，rv.ff678e05。
+
+### 20221108
+*   jira issue [NBIOTCOPER-3255](https://jira.realtek.com/browse/NBIOTCOPER-3255)
+    > [NBIoT][L1C][TRACK]
+    > 1.apply tracking cs timer for idle state
+    > 2.need to reset triggerCsAsExpected flag  after cs done/fail
+
+### 20221109
+*   jira issue [NBIOTCOPER-3255](https://jira.realtek.com/browse/NBIOTCOPER-3255)
+    > [NB-IoT][L1C][SI] set tracking before claim resource
+*   由于目前token verify只在LM3S build做，所以造成rv.f59d185f([UAI] Add TOKEN_LOG for UAI_TIMER_REACT_DELAY timer.)可以commit成功
+*   ipm被塞爆，导致rv.5acdf966([NB-IoT][L1C][RF driver] Tidy code.) dsp boot不成功
+    > ipm [c:00000, c:1ffef]; 128KB
+    > CEVA_FFT_LIB_CX16_FFT_STAGE_LAST_CODE_SECT@c0  at 1ff26-1fff7, size: 00d2
+    > f7 - ef = 8 byte
