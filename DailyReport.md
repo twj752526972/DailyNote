@@ -2242,7 +2242,11 @@ pk9518_ram.ld.S 有用 pre-processor 處理，有帶進 CPPFLAGS
 *   jira issue [NBIOTCOPER-3255](https://jira.realtek.com/browse/NBIOTCOPER-3255)
     > [NBIoT][L1C][TRACK]
     > 1.apply tracking cs timer for idle state
-    > 2.need to reset triggerCsAsExpected flag  after cs done/fail
+    >> a. 这边要注意的是dedicated config set up下来的时候，不会去停因为timer起的tracking cs；
+    >> b. 万一idle下的为timer起的tracking cs被撞掉了(因为priority低)，说明高priority的会占用这段resource(部分)，那么表示2340ms以内，肯定是active的，不做tracking cs也没关系。
+    > 
+    > 2.need to reset triggerCsAsExpected flag after cs done/fail
+    >> 这边的场景是subframe offset为0，所以没有reset，需要补上这两种scenario
 
 ### 20221109
 *   jira issue [NBIOTCOPER-3255](https://jira.realtek.com/browse/NBIOTCOPER-3255)
