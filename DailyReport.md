@@ -2256,3 +2256,33 @@ pk9518_ram.ld.S 有用 pre-processor 處理，有帶進 CPPFLAGS
     > ipm [c:00000, c:1ffef]; 128KB
     > CEVA_FFT_LIB_CX16_FFT_STAGE_LAST_CODE_SECT@c0  at 1ff26-1fff7, size: 00d2
     > f7 - ef = 8 byte
+    > 为什么没有build error的原因可能是因为
+    > ```sh
+    > if TARGET_COOPER
+    > target_common_ldflags += \
+    > -internalData256 \
+    > -internalCode128 \ 这边和target.lin里限制的1ff26-1fff7，ceva-x不知道会参考哪个，但移掉这一行，看起来也还是不会报错，待后续研究
+    > -removeNoloadSec \
+    > -G
+    > ```
+
+### 20221110
+*   raise jira issue [NBIOTCOPER-3259](https://jira.realtek.com/browse/NBIOTCOPER-3259)
+*   cherry-pick rv.9b0d6b71到branch r15，fix by rv.09a951cb
+*   fix mainline_rel15 compile error
+    > platform/plat/Makefile.am
+    >> libplat_a_CPPFLAGS = \
+    -I$(srcdir)/$(TARGET_DIR)/include \
+    -I$(srcdir)/$(TARGET_DIR)/support \
+    > 
+    > rv.c5af80b0 [configure] correct the condition for ENABLE_DYNAMIC_LOAD and ENABLE_PHY_MP_MODE
+    >> 同时ENABLE_DYNAMIC_LOAD和ENABLE_NVRAM，才可以ENABLE_PHY_MP_MODE
+*   L1C sync meeting关于缩小code size
+    > 1.review可搬到flash的function (請大家先幫忙確認l1cMsgHandle()裡call到的handle functions有沒有比較timing critical的，有的請貼出來，要再考慮包一層，剩下的整個移到flash --> 大約1.8KB)
+    > 2.primitive handle function有沒有可以移到flash的漏網之魚
+    > 3.找出單一module內重覆次數較多的source code pattern，n次重覆化成一個function就省(n-1)倍
+    > 4.tracking之類的容易遇到1ms問題的部分，可以切到l1c_task (task_idle()或task_connected())的最後，先看當下subframe剩下cycle數夠不夠來決定run不run
+    > 5.長遠之計 (但需要long-term effort)，理想上是把不在意時間的scheduling計算部分丟到low-priority task run (可想像成l1c_task裡只run sequencer以下，直接跟排TRX這種timing critical事件相關的)，code可以移到flash
+    > 6.MP mode在R15 branch上暫時不用打開 (因目前沒有一定要用到的理由)，等最後優化完成或必需要時再打開
+*   [NB-IoT][L1C][SI] tidy up code and move code to flash
+*   调整QC jenkins的trigger时间，使用node为YL.nb的笔电去跑mainline_rel15
