@@ -2286,3 +2286,12 @@ pk9518_ram.ld.S 有用 pre-processor 處理，有帶進 CPPFLAGS
     > 6.MP mode在R15 branch上暫時不用打開 (因目前沒有一定要用到的理由)，等最後優化完成或必需要時再打開
 *   [NB-IoT][L1C][SI] tidy up code and move code to flash
 *   调整QC jenkins的trigger时间，使用node为YL.nb的笔电去跑mainline_rel15
+
+### 20221111
+*   [NBIoT][L1C] move code to flash, and enable SR feature, align ENABLE_SR_CONFIG
+    > protected/modem.phy.ceva mainline_rel15 rv.785d3a0b 之后 enable了 SR feature，并且已经跟上层的ENABLE_SR_CONFIG进行了对齐，
+    > 与此同时，cooper_sdk rv.026c867f 那边也打开了ENABLE_SR_CONFIG，
+    > 目前DSP SRAM0 还剩0x200affff - 0x200af000 = 4095 byte
+*   [NBIoT][L1C][SIB1][MIB] tidy up code and move code to flash
+    > sib1这边新加了一个state，SIB1_SET_HYPER_FRAME
+    > ![reduce_code_size_branch_rel15](reduce_code_size_branch_rel15.png)
