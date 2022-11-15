@@ -2295,3 +2295,16 @@ pk9518_ram.ld.S 有用 pre-processor 處理，有帶進 CPPFLAGS
 *   [NBIoT][L1C][SIB1][MIB] tidy up code and move code to flash
     > sib1这边新加了一个state，SIB1_SET_HYPER_FRAME
     > ![reduce_code_size_branch_rel15](reduce_code_size_branch_rel15.png)
+
+### 20221114
+*   L1C bi-weekly周会
+*   Mastering_the_FreeRTOS_Real_Time_Kernel-A_Hands-On_Tutorial_Guide.pdf的第三章
+*   协助Hendry搭建SDN remote环境
+
+### 20221115
+*   排查Cooper QC Test rel15 (AP-L23_R14) TC_3跑不顺的问题
+    > jenkins脚本给的timeout时间太短了，才900s，调整为2400s
+*   报销餐饮和旅游补助
+*   jira issue [NBIOTCOPER-3235](https://jira.realtek.com/browse/NBIOTCOPER-3235)
+*   了解L1C OSP化
+    >  l1c msg_task 可以改采成為 osp task/sfu
