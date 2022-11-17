@@ -2308,3 +2308,21 @@ pk9518_ram.ld.S 有用 pre-processor 處理，有帶進 CPPFLAGS
 *   jira issue [NBIOTCOPER-3235](https://jira.realtek.com/browse/NBIOTCOPER-3235)
 *   了解L1C OSP化
     >  l1c msg_task 可以改采成為 osp task/sfu
+
+### 20221116
+*   tidy up 浏览器书签
+*   jira issue [NBIOTCOPER-386](https://jira.realtek.com/browse/NBIOTCOPER-386)
+    > 教yulun如何看TX CRC FAIL
+*   询问JY关于ceva-x ipm爆掉，build却没有报error的问题
+    > 剛開始是想在cofflnk wrapper檢查，因為似乎拿cofflnk沒轍，他對internal program memory似乎不會去尊重我們define的memory class，也就是那個叫`ipm`的class
+    後來發現其實是他自己有個implicit memory class，叫`code`，如果沒指名某個section要往`ipm`去，他就會往`code`去，internalCode128會讓他自己define一個`code` class是128k，然後因為有些sections根本沒說要擺`ipm`，cofflnk當然就不會在擺這些secions尊重`ipm`，搞清楚這個後就有正解了，列出這些sections說要擺`ipm`就好，所以要改在linker script
+*   [LMDE 5 "Elsie"](https://linuxmint.com/download_lmde.php)
+    > 目前LMDE5對應Debian 11/bullseye，到時應該會有個對應Debian 12/bookworm的LMDE6，使用Mint派的就可以毫無牽掛的轉移了
+*   mainline_rel15：[NBIoT][L1C] move the timing-non-critial code in l1cMsgHandle to flash
+    > 大概可以省下不到2k byte
+
+### 20221117
+*   mainline_rel15：[NBIoT][L1C] tidy up code to reduce code size
+    > 大概可以省下800 byte
+    > code轉成data：就是看起來用不少code才能表達的事，如果能轉成查table或struct field得到，就可以把code轉成data，其實也是把n份重覆的code減少成1份意思
+    > 需要注意的是包在一些macro里才会调用的function，例如l1cSrProcess(now)
