@@ -2341,3 +2341,14 @@ pk9518_ram.ld.S 有用 pre-processor 處理，有帶進 CPPFLAGS
 *   Cooper QC Test rel15 (AP-L23_R14) from Hsinchu Office 172.21.86.183 172.17.0.1
     > 0 th iteration Attach fail +CEREG: 1 not received, force assert => 執行attach ^ASSERT: MODEM ASSERT: ../../../../platform/targets/COOPER/../common/os/FREERTOS/MemMang/heap_5_extend.372:250, 0x0:0x69:0x200C1000n
     > 夹版本，modem.phy.ceva revert掉rv.ac9defe0版本还是会遇到上述assert；modem.base切到rv.f650f5bf或是rv.63e22986都build遇到问题；cooper_sdk暂时可以排除掉，因为没有change
+
+### 20221121
+*   jira issue [NBIOTCOPER-3268](https://jira.realtek.com/browse/NBIOTCOPER-3268)
+    > [NBIoT][L1C][TRACK] modify the condition about resetting csForTimer flag, add log
+*   jira issue [NBIOTCOPER-341](https://jira.realtek.com/browse/NBIOTCOPER-341)
+    > 22.4.23 fail，没有reset common path counter，NPDCCH decode不下来
+*   jira issue [NBIOTCOPER-409](https://jira.realtek.com/browse/NBIOTCOPER-409)
+    > 22.4.20a fail，上层在收到sib2/3/4后没有配common config下来，导致底层没有排收paging。
+*   Cooper QC Test rel15 (AP-L23_R14) from Hsinchu Office 172.21.86.183 172.17.0.1
+    > 0 th iteration Attach fail +CEREG: 1 not received, force assert => 執行attach ^ASSERT: MODEM ASSERT: ../../../../platform/targets/COOPER/../common/os/FREERTOS/MemMang/heap_5_extend.372:250, 0x0:0x69:0x200C1000n
+    > modem.phy.ceva[mainline_rel15]: [NBIoT][L1C] fix the null pointer access
