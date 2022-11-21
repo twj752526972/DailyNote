@@ -2326,3 +2326,18 @@ pk9518_ram.ld.S 有用 pre-processor 處理，有帶進 CPPFLAGS
     > 大概可以省下800 byte
     > code轉成data：就是看起來用不少code才能表達的事，如果能轉成查table或struct field得到，就可以把code轉成data，其實也是把n份重覆的code減少成1份意思
     > 需要注意的是包在一些macro里才会调用的function，例如l1cSrProcess(now)
+
+### 20221118
+*   jira issue [NBIOTCOPER-3268](https://jira.realtek.com/browse/NBIOTCOPER-3268)
+    > [NBIoT][L1C][TRACK] need to release tracking cs for timer when eventTrigger is true
+*   [mainline_rel15]: [NBIoT][L1C] optimize the structure about L1C_TASK_TABLE
+*   jira issue [NBIOTCOPER-3273](https://jira.realtek.com/browse/NBIOTCOPER-3273)
+    > [SDK-release-v40]: [NB-IoT][L1C][SI] reduce the talog, jira 3273
+*   jira issue [NBIOTCOPER-3272](https://jira.realtek.com/browse/NBIOTCOPER-3272)
+    > cs看到有subframe offset，启动background MIB，将trackingByReq的state切走，这边漏清了csForTimer flag， fix by rv.2289f2cf ，need to reset csForTimer flag when enable background MIB。
+*   jira issue [NBIOTCOPER-633](https://jira.realtek.com/browse/NBIOTCOPER-633)
+    > 22.4.20 fail，收到sib 2/3/4后，没有配common config下来，比对pass的log [^22.4.20_992.talog]是有配common config的。
+    > 同jira issue [NBIOTCOPER-387](https://jira.realtek.com/browse/NBIOTCOPER-387)，22.4.22 fail
+*   Cooper QC Test rel15 (AP-L23_R14) from Hsinchu Office 172.21.86.183 172.17.0.1
+    > 0 th iteration Attach fail +CEREG: 1 not received, force assert => 執行attach ^ASSERT: MODEM ASSERT: ../../../../platform/targets/COOPER/../common/os/FREERTOS/MemMang/heap_5_extend.372:250, 0x0:0x69:0x200C1000n
+    > 夹版本，modem.phy.ceva revert掉rv.ac9defe0版本还是会遇到上述assert；modem.base切到rv.f650f5bf或是rv.63e22986都build遇到问题；cooper_sdk暂时可以排除掉，因为没有change
