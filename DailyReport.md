@@ -2352,3 +2352,35 @@ pk9518_ram.ld.S 有用 pre-processor 處理，有帶進 CPPFLAGS
 *   Cooper QC Test rel15 (AP-L23_R14) from Hsinchu Office 172.21.86.183 172.17.0.1
     > 0 th iteration Attach fail +CEREG: 1 not received, force assert => 執行attach ^ASSERT: MODEM ASSERT: ../../../../platform/targets/COOPER/../common/os/FREERTOS/MemMang/heap_5_extend.372:250, 0x0:0x69:0x200C1000n
     > modem.phy.ceva[mainline_rel15]: [NBIoT][L1C] fix the null pointer access
+
+### 20221122
+*   jira issue [NBIOTCOPER-3235](https://jira.realtek.com/browse/NBIOTCOPER-3235)
+    > tracking buffer里
+    [0] NPDSCH harq 0，没做事，
+    [1] preamble，没做事，
+    [2] NPDSCH harq 1，有为它压resource，
+    另外是因为decode到NPDSCH，要处理result，补进database
+*   [NBIoT][L1C][TRACK] tidy up code
+    > 将for循环进行合并
+*   mainline_rel15 build fail
+    > 需要cherry-pick master上的版本rv.bcf0642a到branch rel15
+*   jira issue [NBIOTCOPER-341](https://jira.realtek.com/browse/NBIOTCOPER-341)，和Emma/Hendry讨论reset common path的问题
+    > common path reset 後，SNR也沒有回到正常值，猜測sto還是沒有追到正確的值，所以對RX decode還是會有影響
+    sto有偏，可能也會影響detect出in-sync的時間點
+    假如真實的sto是沒偏的，但common path內部計算的累計值是out-of-sync那一段沒訊號時的結果(估出的sto/cfo是不可靠的)，reset common path才有幫助
+    但現在sto已經偏了，所以reset也無解
+    因為out-of-sync那一段儀器是沒打訊號的，sto/cfo估不準也是符合預期的，所以L1C control才會調整成out-of-sync那一段是不補tracking的
+    預期5s tracking不補sto/cfo是不會偏掉太多的，所以訊號回來的時候，common path應該可以估出SNR變好
+    這樣就可以detect出out-of-sync -> in-sync
+    因為現在sto已經調偏太多，所以猜測應該也有比較慢才detect到rssi有變大，gain也比較慢才有調整
+    有數out-of-sync過程中調整的sto, pass的log total調整的sto其實不多，但fail的total已經調10~20幾點了
+
+### 20221123
+*   jira issue [NBIOTCOPER-3235](https://jira.realtek.com/browse/NBIOTCOPER-3235)
+    > assert时都是connected下的two Harq场景，RX正在decode NPDSCH，突然收到上层来的get rsrp，要启动rach，tracking这边可以判断出正在为RX program，是为not Idle，因此没有必要启动tracking cs的schedule(这个动作会花3500+)，将这版优化上到master rv.18a9099d 以观察是否存在side effect，如果没问题再cherry-pick到SDK-release-v40。
+*   tracking code refactoring
+    > 1.考虑将timer压的tracking单独拎出来，因为timer只用到了tracking cs的功能
+    > 2.tracking是idle的时候才考虑tracking cs schedule，看是否可以通过state去切
+    > 3.考虑将sync buffer替换成list，按照在list中expectedSyncTime的顺序进行program，这样可以省去for循环，对RX来说，到达lastRxTime就将其从list里删掉
+*   了解C语言中的WEAK关键字
+    > [C语言之强化，弱化符号weak](https://www.shuzhiduo.com/A/xl56rVqm5r/)
