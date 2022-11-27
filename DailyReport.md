@@ -2384,3 +2384,18 @@ pk9518_ram.ld.S 有用 pre-processor 處理，有帶進 CPPFLAGS
     > 3.考虑将sync buffer替换成list，按照在list中expectedSyncTime的顺序进行program，这样可以省去for循环，对RX来说，到达lastRxTime就将其从list里删掉
 *   了解C语言中的WEAK关键字
     > [C语言之强化，弱化符号weak](https://www.shuzhiduo.com/A/xl56rVqm5r/)
+
+### 20221124
+*   jira issue [NBIOTCOPER-3284](https://jira.realtek.com/browse/NBIOTCOPER-3284)
+    > rv.18a9099d造成的side effect，没有考虑到background MIB/SIB1 set tracking的场景(当tracking为background MIB进行program时，会发现tracking is not idle，直接return，不会做tracking cs之后收 MIB/SIB1的动作)，shall fix by rv.8dc2bae5。
+    > 最终求出来的modification timer的boundary都是 hyper/SFN/subfn=808/0/0的位置，感觉只要在该timer 没超时之前，都没有必要重复delete旧的，create新的timer，因为target 都是同一个，请RRC帮忙评估，当网络重复通知UE系统消息会改变，这种场景下是否存在优化空间。
+
+### 20221125
+*   tracking这边优化：
+    > 将L1C timer单独拎出来，验证code flow的正确性
+    > recover from datalost时，timer重新set tracking，tracking这边query csm database会assert，需要新增变量csTstamp来重新评估/claim resource等
+*   GCF case break down
+    > 看了几份log，都有出现./NBIOT/common/NBIOT_Component.ttcn:213: unexpected RRC PDU at port SRB，
+    在GCF那块板子run的过程中，猜测是因为remote还有接其他板子(却没有reset)，导致该板子会发attach req这种msg干扰正常的测试流程。
+*   NO_SIM时，还可以trigger MO signalling，但不会再trigger MO data
+    > spec没有说UAI/USIM的state不对的情况就要挡掉MO signalling，只有说ESM/EMM state跟网络端mismatch/不对时，这时候要trigger MO signalling，才会挡掉
