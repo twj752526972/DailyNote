@@ -2399,3 +2399,9 @@ pk9518_ram.ld.S 有用 pre-processor 處理，有帶進 CPPFLAGS
     在GCF那块板子run的过程中，猜测是因为remote还有接其他板子(却没有reset)，导致该板子会发attach req这种msg干扰正常的测试流程。
 *   NO_SIM时，还可以trigger MO signalling，但不会再trigger MO data
     > spec没有说UAI/USIM的state不对的情况就要挡掉MO signalling，只有说ESM/EMM state跟网络端mismatch/不对时，这时候要trigger MO signalling，才会挡掉
+
+### 20221128
+*   tracking优化
+    > [NBIoT][L1C][TRACK] simplify L1C TRACK SEPARATE TIMER code flow
+    > [NBIoT][L1C][TRACK] modify token log for track timer
+    > [NBIoT][L1C][TRACK] reset the flag exactly
