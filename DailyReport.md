@@ -2405,3 +2405,49 @@ pk9518_ram.ld.S 有用 pre-processor 處理，有帶進 CPPFLAGS
     > [NBIoT][L1C][TRACK] simplify L1C TRACK SEPARATE TIMER code flow
     > [NBIoT][L1C][TRACK] modify token log for track timer
     > [NBIoT][L1C][TRACK] reset the flag exactly
+
+### 20221129
+*   trace jira issue [NBIOTCOPER-413](https://jira.realtek.com/browse/NBIOTCOPER-413)
+    > freq scan flow double free 同一块memory
+*   协助zy_zhang build FTI2C image
+
+### 20221130
+*   协助zy_zhang build FTI2C image
+    > 理清给master和slave先后上电时会造成的影响
+*   理清--disable-dependency-tracking对make指令会造成的影响
+    > 那些compile過程中產生的.d，也就是dependency file會不被尊重，header改了不會重build(就是.h會不會trigger compile .c囉)
+    這在只build一次的場合可以加速，用在自己開發的環境就是整自己了
+    "你header改了一定要make clean"，這就是build system沒有做到dependency tracking
+    command-line太長，toolchain會搞砸，这是cevaxcc的问题
+    如果需要產生.d，需要多兩三組參數，才能叫compiler compile時順便產生用到哪些.h的清單
+    所以如果本來的命令已經6175 characters了，加上要請他產生.d的options就爆了
+    說dependency tracking是所有c/c++ build system都要解決的問題比較正確
+    他們或多或少都會提供disable tracking的開關，而autoconf/automake給的開關是這個
+    > ![enable_dependency_tracking](enable_dependency_tracking.png)
+    > L23AP，L23DSP 會帶上一大堆 L23 相關的 CPPFLAGS，dependency 相關那幾個字，也許無關緊要，local实验发现即使加了--disable-dependency-tracking，L23DSP 也还是 build 不过(for branch r15)
+
+### 20221201
+*   了解L1C OSP化相关的code
+*   merge master to branch rel15
+    > 需要将r15独有的token log搬到9000以后，防止master上的token id和r15上的重叠
+    > 将tokenize的script改成disable hole-filling，这样生成token log时可以默认从token id的max开始append
+    > 需要trace在commit时，为何%private不会报error：fail to read token.xml
+        >> 脚本是分成前端和library寫，那個讀token.xml的動作library裡頭，有一籮筐檢查，缺這個、那個值重複了、格式不對、有無法處理的character、...，失敗了就return false，那個API就是讀，所以讀失敗了就說讀失敗了，為什麼不在檢查的時候表達是什麼問題？因為那是library不適合直接印；為什麼不表達error code讓外面印？因為那個時間要多很多而且沒人看
+    > merge 和cherry-pick一定是选择merge，因为cherry-pick到最后会看不出code line的长相
+    > 一是token.xml整個拿出來獨立，跨modem/ap，跨branches，就是一個大集合
+      二是只要git merge就重新generate，merge的動作做完就砍掉重練，畢竟所有的問題都從token.xml綁著特定branch開始
+    > 比較practical的應該是只做git merge，merge時regenerate
+
+
+### 20221202
+*   pre-commit的脚本里面会看对应的branch上commit_test.json
+    > ```sh
+    > "configure": {
+    >   "script": "configure.COOPER_MULCOR_AP_L23_PHY_LOG_TA",
+    >   "args": "TAPEOUT_ID=C ACN_RELEASE=ACN_R14"}
+    > "configure": {
+    >   "script": "configure.COOPER_MULCOR_APL23_PHY_LOG_TA",
+    >   "args": "USIM=USIM_SIMC TAPEOUT_ID=C"}
+    > ```
+*   ps callback 時，將 callback data 放進 queue，然後要 notify msg task，
+    > 加速方式：notify msg task 的方式，是 allocate memory for NOTIFICATION message，然後送給 msg task，這個 message 就不用 allocate 了，直接宣告一個 global 變數來使用，msg task 收到時就不要 free，不是所有 message 都可以這麼做，與 message 的 功能/目的 有關算是沒有內容，这个msg連發也沒關係，它的目的是確保 receiver 被 schedule，與 message content 沒有關係
