@@ -2433,6 +2433,7 @@ pk9518_ram.ld.S 有用 pre-processor 處理，有帶進 CPPFLAGS
     > 将tokenize的script改成disable hole-filling，这样生成token log时可以默认从token id的max开始append
     > 需要trace在commit时，为何%private不会报error：fail to read token.xml
         >> 脚本是分成前端和library寫，那個讀token.xml的動作library裡頭，有一籮筐檢查，缺這個、那個值重複了、格式不對、有無法處理的character、...，失敗了就return false，那個API就是讀，所以讀失敗了就說讀失敗了，為什麼不在檢查的時候表達是什麼問題？因為那是library不適合直接印；為什麼不表達error code讓外面印？因為那個時間要多很多而且沒人看
+    > 
     > merge 和cherry-pick一定是选择merge，因为cherry-pick到最后会看不出code line的长相
     > 一是token.xml整個拿出來獨立，跨modem/ap，跨branches，就是一個大集合
       二是只要git merge就重新generate，merge的動作做完就砍掉重練，畢竟所有的問題都從token.xml綁著特定branch開始
