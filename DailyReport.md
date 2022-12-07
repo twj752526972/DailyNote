@@ -2452,3 +2452,17 @@ pk9518_ram.ld.S 有用 pre-processor 處理，有帶進 CPPFLAGS
     > ```
 *   ps callback 時，將 callback data 放進 queue，然後要 notify msg task，
     > 加速方式：notify msg task 的方式，是 allocate memory for NOTIFICATION message，然後送給 msg task，這個 message 就不用 allocate 了，直接宣告一個 global 變數來使用，msg task 收到時就不要 free，不是所有 message 都可以這麼做，與 message 的 功能/目的 有關算是沒有內容，这个msg連發也沒關係，它的目的是確保 receiver 被 schedule，與 message content 沒有關係
+
+### 20221205
+*   了解L1C OSP化相关的code
+*   理清在commit时，为何%private不会报error：fail to read token.xml
+    > token.xml的size有被更新回max值，應該是tokenize這麼做的，因為這邊有trigger update(任何一個.c/.cpp有被動到，都會trigger，看time stamp)，
+    或者反過來講，之前有問題應該是因為沒trigger update，忘記更新的size就進到了下個階段: 用來產生.cpp，這裡就會死掉了
+
+### 20221206
+*   jira issue [NBIOTCOPER-3302](https://jira.realtek.com/browse/NBIOTCOPER-3302)
+    > msg Task 被打断，导致SI internal里的参数有被清掉但state没被切走，handle这种scenario at SDK-release-v40 rv.7621e2db。
+*   tidy up SI code
+    > stop SI req时，需要disable interrupt，防止底层收到SI回报给上层和上层下abort req在同一子帧，万一msg task被切走，就会导致msg task判断时internal不为空，但L1C task会将internal free，再run回msg task时，依旧要给internal赋值的情况
+*   了解L1C OSP化相关的code
+    > 画流程图
