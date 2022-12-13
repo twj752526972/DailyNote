@@ -2405,6 +2405,7 @@ pk9518_ram.ld.S 有用 pre-processor 處理，有帶進 CPPFLAGS
     > [NBIoT][L1C][TRACK] simplify L1C TRACK SEPARATE TIMER code flow
     > [NBIoT][L1C][TRACK] modify token log for track timer
     > [NBIoT][L1C][TRACK] reset the flag exactly
+*   L1C bi-weekly周会
 
 ### 20221129
 *   trace jira issue [NBIOTCOPER-413](https://jira.realtek.com/browse/NBIOTCOPER-413)
@@ -2466,3 +2467,58 @@ pk9518_ram.ld.S 有用 pre-processor 處理，有帶進 CPPFLAGS
     > stop SI req时，需要disable interrupt，防止底层收到SI回报给上层和上层下abort req在同一子帧，万一msg task被切走，就会导致msg task判断时internal不为空，但L1C task会将internal free，再run回msg task时，依旧要给internal赋值的情况
 *   了解L1C OSP化相关的code
     > 画流程图
+
+### 20221207
+*   review L1C OSP化相关的流程图
+    > sync with Jimmy学长
+*   了解l1cOspMsgProcess()中AMIFPHY_xxx没有被包进ENABLE_DIRECT_OSP_MSG_PROCESS的原因
+    > 2v1的板子如果没有K过的话，MSG_ID_LTE_PHYAMIF_TSX_MEASURE_REQ发出去后，AMIF并不会回MSG_ID_LTE_AMIFPHY_TSX_MEASURE_CNF
+    >> AT^EFUSE=DW,DF,10,0(读取温度相关的有没有被K过，0xff表示没有被K过)
+    > 
+    > MSG_ID_LTE_PHYAMIF_EFUSE_RD_REQ和MSG_ID_LTE_PHYAMIF_RFFE_INFO_RD_REQ，PHY_init的时候 RF driver会去lock mutex，要等AMIF回报结果才会unlock，如果把上层来的msg放到xL1cQueue里，留给msg_task去处理的话，由于时序上，phy_Init在前，msg_task create在后，会导致上层来的msg 放在 xL1cQueue 里 没人去处理
+
+### 20221208
+*   L1C OSP化相关的code draft
+    > stack size overflow
+    >> configMINIMAL_STACK_SIZE	( ( unsigned portSHORT ) 75 )，不是250
+    >> trace_task_switched_in和trace_task_switched_out里面print出来发现：
+    ![msg_task_stack_size](msg_task_stack_size.png)
+    >> 還沒被用過的 stack memory用0xa5来填充:
+    >> ```sh
+    >> static TCB_t *prvAllocateTCBAndStack( const uint16_t usStackDepth, StackType_t * const puxStackBuffer )
+    >> {
+    >>      ( void ) memset( pxNewTCB->pxStack, ( int ) tskSTACK_FILL_BYTE, ( size_t ) usStackDepth * sizeof( StackType_t ) );
+    >> #define tskSTACK_FILL_BYTE    ( 0xa5U )
+    >> ```
+    >> 看 configCHECK_FOR_STACK_OVERFLOW 的設定，應該 first and second 都有做:
+    >> ```sh
+    >> #define taskFIRST_CHECK_FOR_STACK_OVERFLOW()first 是比對 pxTopOfStack 和 pxStack
+    >> { 
+    >>     /* Is the currently saved stack pointer within the stack limit? */
+    >>     if( pxCurrentTCB->pxTopOfStack <= pxCurrentTCB->pxStack )
+    >>     {
+    >>         vApplicationStackOverflowHook( ( TaskHandle_t ) pxCurrentTCB, pxCurrentTCB->pcTaskName );
+    >>     }
+    >> }
+    >> #define taskSECOND_CHECK_FOR_STACK_OVERFLOW()second 是比對 stack fill byte
+    >> {
+    >>  if( memcmp( ( void * ) pxCurrentTCB->pxStack, ( void * ) ucExpectedStackBytes, sizeof( ucExpectedStackBytes ) ) != 0 )
+    >>      {
+    >>          vApplicationStackOverflowHook( ( TaskHandle_t ) pxCurrentTCB, pxCurrentTCB->pcTaskName );
+    >>      }
+    >> }
+    >> ```
+
+### 20221209
+*   narrow down WDT exception的问题
+    > 将MSG_ID_LTE_PHYAMIF_EFUSE_RD_REQ和MSG_ID_LTE_PHYAMIF_RFFE_INFO_RD_REQ留在l1cOspMsgProcess()处理，可以避掉这个问题
+    > 在上述的改法后，还会遇到wake up时，msg_task先动起来，开common config，start task 0x20000，l1cInit后做，清掉所有的task，造成没有办法去排paging
+    > ![no_paging](no_paging.png)
+*   L1C bi-weekly周会
+
+### 20221212
+*   jira issue [NBIOTCOPER-3313](https://jira.realtek.com/browse/NBIOTCOPER-3313)
+    > get sfn req （msg task）被打断导致，fix by rv.9f23d48f，同步cherry-pick到SDK-release-v40。
+*   jira issue [NBIOTCOPER-3309](https://jira.realtek.com/browse/NBIOTCOPER-3309)
+    > 场景和[NBIOTCOPER-3196](https://jira.realtek.com/browse/NBIOTCOPER-3196) 类似，l1c timer set tracking，拿到tracking index=1，进PSM清掉所有tracking info，造成l1c timer和tracking两边记录的不match，从PSM醒来，l1c timer没有重新set tracking(虽然dsp睡到state 4，但是km4没有，醒来时不会有l1cInit的动作)，导致后续在abort时发现tracking info 不存在，而assert。
+*   trace ap_cc and core communication code flow
