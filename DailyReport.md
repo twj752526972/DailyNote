@@ -2522,3 +2522,6 @@ pk9518_ram.ld.S 有用 pre-processor 處理，有帶進 CPPFLAGS
 *   jira issue [NBIOTCOPER-3309](https://jira.realtek.com/browse/NBIOTCOPER-3309)
     > 场景和[NBIOTCOPER-3196](https://jira.realtek.com/browse/NBIOTCOPER-3196) 类似，l1c timer set tracking，拿到tracking index=1，进PSM清掉所有tracking info，造成l1c timer和tracking两边记录的不match，从PSM醒来，l1c timer没有重新set tracking(虽然dsp睡到state 4，但是km4没有，醒来时不会有l1cInit的动作)，导致后续在abort时发现tracking info 不存在，而assert。
 *   trace ap_cc and core communication code flow
+
+### 20221213
+*   trace ap_cc and core communication code flow
