@@ -2525,3 +2525,41 @@ pk9518_ram.ld.S 有用 pre-processor 處理，有帶進 CPPFLAGS
 
 ### 20221213
 *   trace ap_cc and core communication code flow
+    *   disable掉CCSND_TASK
+    *   [CC] AP_CC also provides Osp_CC_Send_Msg() API as well as osp_core_communication.c
+
+### 20221214
+*   sync ENBALE_L1C_MSG_TASK flow with jimmy
+    > 每次 WDT exception的时候都有伴随msg MSG_ID_LTE_SIMCAMIF_EFUSE_RD_REQ，里面也有disable interrupt，做实验关掉这边的 disable interrupt，还是能复现 WDT exception
+    > 请教jimmy学长后：
+    ![task_state_dump](task_state_dump.png)
+    ![task_state_enum.png](task_state_enum.png)
+    > WDT exception 時是 msg_task 在執行的，因此有两个建议：
+    > *   msg_task priority 调整成比 CC receive 低
+    > *   l1cTaskMsg 進去時的 token log #576 往前移到 L1C_systemTimeUpdate 之前(有沒有可能卡在 L1C_systemTimeUpdate 裡面?)
+    > 
+    > 按照上述改法以后，不再复现WDT exception，但还是会遇到release回到idle以后，没有去排收paging的问题：
+    > *   L1C task在wake up的时候，lock mutex，等msg_task去unlock，但msg_task在 wake up的时候 收到 common config req，会等L1C task做完所有事情后 给 一个signal(可以考虑在common config之后再做INIT_TYPE_POS的动作，但是这个动作会花18ms，129-111=18ms，假如2~3ms之后就是paging，那么可能会来不及？)
+    > 129	0.026092	111 ap_cc.c:421 send MsgType 0x050c0003 MsgSize 4
+    > 80	0.044158	129	PHY init done.\n
+    > *   开机的时候 也是类似(区别是 不会有common config req)，好不容易改成 
+    > 1.msg_task 等L1C task init了差不多 被通知
+    > 2.L1C task 再调用 XcvrInit(里面lock mutex)
+    >
+    > 暂时的解法是:
+    > * 让PHY init时做完lock mutex动作，之后收到AMIF发过来的msg后，还是在l1cOspMsgProcess中处理掉，但还需要注意的是，wake up的时候，msg_task还是init太快，导致common config req先收下来，l1cInit后做，清掉所有的task，造成没有办法去排paging，如果将l1cInit调整到PHY init之前做，可以避掉这个问题，但是会导致PHY test mode开机开不起来
+
+### 20221215
+*   verify ENBALE_L1C_MSG_TASK flow
+    *   [x] L23DSP(OK)
+        > 在该config下，可以正确显示MSG_ID_LTE_L1CL1C_SEND_MSG_REQ
+    *   [x] mp mode(OK)
+    *   [x] dump ram log(OK)
+    *   [x] dump l1c msg id(OK)
+    *   [x] phy test mode
+        > l1c init必须要在PHY init之后，否则开机就会遇到plat_wdt.c:154 watchdog reset
+        > 在该config下，可以正确显示MSG_ID_LTE_L1CL1C_SEND_MSG_REQ
+*   jira issue [NBIOTCOPER-3316](https://jira.realtek.com/browse/NBIOTCOPER-3316)
+    > L1C 需要handle 重复的get rsrp req
+*   jira issue [NBIOTCOPER-3290](https://jira.realtek.com/browse/NBIOTCOPER-3290)
+    > 场景和jira [NBIOTCOPER-3235](https://jira.realtek.com/browse/NBIOTCOPER-3235)一样
