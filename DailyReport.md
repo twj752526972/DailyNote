@@ -2563,3 +2563,27 @@ pk9518_ram.ld.S 有用 pre-processor 處理，有帶進 CPPFLAGS
     > L1C 需要handle 重复的get rsrp req
 *   jira issue [NBIOTCOPER-3290](https://jira.realtek.com/browse/NBIOTCOPER-3290)
     > 场景和jira [NBIOTCOPER-3235](https://jira.realtek.com/browse/NBIOTCOPER-3235)一样
+
+### 20221216
+*   verify ENBALE_L1C_MSG_TASK flow
+    *   [x] FTI2C(OK)
+*   disable the ENBALE_L1C_MSG_TASK flow(OK)
+    *   profile msg_task 所用的stack size，0x00016ca4-0x00016bc8=0xdc=220 byte
+    ```sh
+    platform/targets/common/os/FREERTOS/freertos_evr.c
+    void trace_task_switched_out(TCB_t *current_tcb)
+    if (current_tcb->uxPriority == 197)
+    {
+        RT_LOG(LOG_MOD_OSP, RT_LOG_LEVEL_INFO, "out TCB:%04x, pxTopOfStack 0x%08x", (uint16_t)(uintptr_t)current_tcb, current_tcb->pxTopOfStack);
+    }
+    ```
+    > TCB:2a74 197 'msg_tas'
+    > in TCB:2a74, pxTopOfStack 0x00016ca4
+    > out TCB:2a74, pxTopOfStack 0x00016bc8
+*   在linux server(172.29.37.111)下安装VMware，但是会遇到remote连接被拒绝的问题，虚拟机下的VMware可以work(PS: windows下VMware截图会黑屏)
+    *   安装/卸载.bundle文件所用指令，可参考[Uninstall Horizon Client for Linux](https://docs.vmware.com/en/VMware-Horizon-Client-for-Linux/2209/horizon-client-linux-installation/GUID-9B5BE7D9-B4A9-4CBB-9534-7E65A813A751.html)
+    ```sh
+    sudo ./VMware-Horizon-Client-2106.1-8.3.1-18435609.x64.bundle (--console)[加了console表示在terminal端显示，不用GUI]
+    sudo (env VMWARE_KEEP_CONFIG=yes) ./VMware-Horizon-Client-2209-8.7.0-20616018.x64.bundle -u vmware-horizon-client[加了keep config表示保留旧有配置]
+    ```
+    ![remote_connect_fail](remote_connect_fail.png)
