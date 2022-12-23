@@ -2587,3 +2587,74 @@ pk9518_ram.ld.S 有用 pre-processor 處理，有帶進 CPPFLAGS
     sudo (env VMWARE_KEEP_CONFIG=yes) ./VMware-Horizon-Client-2209-8.7.0-20616018.x64.bundle -u vmware-horizon-client[加了keep config表示保留旧有配置]
     ```
     ![remote_connect_fail](remote_connect_fail.png)
+
+### 20221219
+*   跟dennis讨论L1C OSP 化的改动以及修改方案
+    > A.或许可以将RF driver单独弄成一个osp task/sfu，priority比L1C task还高，处理完之后再create L1C task，在L1C task init之后再放行msg task
+    > B.需要narrow down：
+        主因應該是compile option 沒寫好
+        次因是 兩種做比較
+        更正 3 種情形:
+        >> 1.wrong option, file 中沒有東西被refer
+        >> 2.wrong option, file 中有東西被refer
+        >> 3.correct, 整個file 不會被build
+    > 
+    > 1 中, 整個file 的東西都沒被用到, 於是全部都不出現蠻正常的
+        2 裡面, 新增了一個會被用到的function, 這個file 會被refer到，於是code 裡的 global variable 也有可能被用到，於是就被留下來了 (沒有被linker 移掉)
+*   jira issue [NBIOTCOPER-3320](https://jira.realtek.com/browse/NBIOTCOPER-3320)
+    > 上层没有配non anchor carrier 下来
+*   工作组织架构调整谈话by Sam
+
+### 20221220
+*   FTI2C golden image
+    > 和kevin一起讨论talog抓不到的问题
+    > golden板子的原先设定是：TA log对应D4D5，at port和download对应C10C11，
+        PAD_DEF(GPIO_C10,  UART1_RX,    PULL_HIGH)     \
+        PAD_DEF(GPIO_C11,  UART1_TX,    PULL_NONE)     \
+        PAD_DEF(GPIO_D4,  UART_DSP_TX,    PULL_NONE)     \
+        PAD_DEF(GPIO_D5,  UART_DSP_RX,    PULL_HIGH)     \
+        FUNC_DEF(UART1, AT0,   115200)                  \
+        FUNC_DEF(UART_DSP, LOG,   3000000)              \
+    > 但ted用的script是D4D5(UART3)可以download image，读efuse(at^efuse=ldw,0,0,0)也可以发现是有改过了
+    > 因为D4D5作为uart3可以烧image，但是pinmux table和dsp uart是反的，导致ted那边ta log出不来：
+    ![D4D5_pinmux](D4D5_pinmux.png)
+    > 
+    > 两种改法：
+    >> 要么将硬件改接线
+    ![D4D5_FT232.png](D4D5_FT232.png)
+    > 
+    >> 要么将D4D5用来download和at cmd，C10C11用来talog(不存在接线问题)
+    >>  PAD_DEF(GPIO_C10,  UART1_RX,    PULL_HIGH)     \
+        PAD_DEF(GPIO_C11,  UART1_TX,    PULL_NONE)     \
+        PAD_DEF(GPIO_D4,  UART3_RX,    PULL_HIGH)     \
+        PAD_DEF(GPIO_D5,  UART3_TX,    PULL_NONE)     \
+        FUNC_DEF(UART3, STDIO, 115200)        \
+        FUNC_DEF(UART3, AT0,   115200)        \
+        FUNC_DEF(UART3, SHELL, 115200)        \
+        FUNC_DEF(UART1, LOG,   3000000)       \
+
+### 20221221
+*   raise jira issue [NBIOTCOPER-3324](https://jira.realtek.com/browse/NBIOTCOPER-3324)
+*   和casey一起trace jira issue [NBIOTCOPER-3322](https://jira.realtek.com/browse/NBIOTCOPER-3322)
+
+### 20221222
+*   jira issue [NBIOTCOPER-447](https://jira.realtek.com/browse/NBIOTCOPER-447)
+    *   看起来是L1C msg task改采为osp task造成的side effect，dsp睡下去了，没有启动排paging的动作，会再修正，fix by rv.caaeb78a。
+    *   casey有发现，wake up起来时，
+        **before**：只花1ms(efuse read在前，结束后msg task 才会被create，会统一处理get si req + common config req，所以get si req awake 5ms可以保护common config req的执行)
+        [PHY] (9, 330, 7) start task 0x20000, task list 0x20000, carrier state 0
+        [PHY] (9, 330, 8) stop task 0x20000, task list 0x0, carrier state 0
+        **after**：要花5ms(这边是因为有efuse read的动作，需要等l1c task前面init完了才能执行task exe里的动作)
+        [PHY] (2077, 326, 6) start task 0x20000, task list 0x20000, carrier state 0
+        [PHY] (2077, 327, 1) stop task 0x20000, task list 0x0, carrier state 0
+        **assert**时：
+        get si req awake 5ms已经无法cover到common config req的执行
+*   FTI2C test pattern(Doing)
+
+### 20221223
+*   FTI2C test pattern(Done)
+    *   [FT_I2C_AT] add test pattern for FT_TESTER
+*   jira issue [NBIOTCOPER-3324](https://jira.realtek.com/browse/NBIOTCOPER-3324)
+    *   底层find cell一直失败，猜测跟[NBIOTCOPER-3321](https://jira.realtek.com/browse/NBIOTCOPER-3321) 类似
+*   jira issue [NBIOTCOPER-390](https://jira.realtek.com/browse/NBIOTCOPER-390)
+    > align seving cell 结束后会enable SI task，由于没有awake，导致SI 没有去claim resource，错过了起来收的时间点，rv.caaeb78a改之前没问题是因为common config cnf回上去后可以awake 5ms保证SI 可以claim resource，但rv.caaeb78a之后，收到common config req会先awake 5ms，可以cover到做完align serving cell，回完common config cnf便不再awake，需要在enable SI task的API里自己awake来保证。
