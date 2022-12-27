@@ -2658,3 +2658,18 @@ pk9518_ram.ld.S 有用 pre-processor 處理，有帶進 CPPFLAGS
     *   底层find cell一直失败，猜测跟[NBIOTCOPER-3321](https://jira.realtek.com/browse/NBIOTCOPER-3321) 类似
 *   jira issue [NBIOTCOPER-390](https://jira.realtek.com/browse/NBIOTCOPER-390)
     > align seving cell 结束后会enable SI task，由于没有awake，导致SI 没有去claim resource，错过了起来收的时间点，rv.caaeb78a改之前没问题是因为common config cnf回上去后可以awake 5ms保证SI 可以claim resource，但rv.caaeb78a之后，收到common config req会先awake 5ms，可以cover到做完align serving cell，回完common config cnf便不再awake，需要在enable SI task的API里自己awake来保证。
+
+### 20221226
+*   和jimmy学长讨论关于ENABLE_PHY_OSP_ADAPT和ENABLE_L23_ADAPT_SFU的问题
+    > ENABLE_PHY_OSP_ADAPT是preprocess 階段處理的，而非 compile，精確地描述，應該要有 preprocess 或 macro 的字出現，
+    > 结论是：不能期待 CEVA linker 會準確地消除沒用到的 symbol，preprocess 比較靠譜
+*   support kevin，remote连进上海QC cooperC，使其进入engineering mode，用的log口download image，所以在minicom那边选择的是/dev/ttyCooperC-LOG这个口，可以看到>rom，从而输入DW 981c0000 100 or DW 98000000 100 or DW 98001000 100，上海的这块板子在0x1c0000的地方，没有被误写为0，表示flash 没有被寫壞
+    > ```sh
+    > serial-ctrl --chip-version=c-cut-esc --console-port=/dev/ttyCooperC-CONSOLE --ctrl-port=/dev/ttyCooperC-CONTROL --aux-ctrl-port=/dev/ttyCooperC-AUXCTRL download --package=bga boot.bin@0x12D000 firmware.bin@0x140000 partition.bin@0x0
+    > ```
+*   claire给出的公式和log中print出来的NSSS SNR的值，是可以对起来的：
+    > NSSS SNR = 10 * log10(SP/NV) = 10 * log10(44/6022) = -21.3dB
+    ![NSSS_SNR](NSSS_SNR.png)
+*   jira issue [NBIOTCOPER-3332](https://jira.realtek.com/browse/NBIOTCOPER-3332)
+    > 同一子帧收到两笔stop SI req，先等上层确认是否符合预期
+*   帮忙处理jira [COOPER-44](https://jira.realtek.com/browse/COOPER-44)
