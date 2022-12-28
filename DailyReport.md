@@ -2673,3 +2673,12 @@ pk9518_ram.ld.S 有用 pre-processor 處理，有帶進 CPPFLAGS
 *   jira issue [NBIOTCOPER-3332](https://jira.realtek.com/browse/NBIOTCOPER-3332)
     > 同一子帧收到两笔stop SI req，先等上层确认是否符合预期
 *   帮忙处理jira [COOPER-44](https://jira.realtek.com/browse/COOPER-44)
+
+
+### 20221227
+*   L1C bi-weekly周会
+*   register and stack dump introduction by jimmy
+*   帮忙处理jira issue [NBIOTCOPER-3290](https://jira.realtek.com/browse/NBIOTCOPER-3290)
+    > 看起来像是server主动断线了，所以后续的at command下去就直接回error了
+*   jira issue [NBIOTCOPER-3334](https://jira.realtek.com/browse/NBIOTCOPER-3334)
+    > assert这一个子帧，呼叫了5次Osp_AllocNonPersistentMsg，约花费cycle count为1369*5=6845。
