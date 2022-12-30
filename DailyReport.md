@@ -2682,3 +2682,70 @@ pk9518_ram.ld.S 有用 pre-processor 處理，有帶進 CPPFLAGS
     > 看起来像是server主动断线了，所以后续的at command下去就直接回error了
 *   jira issue [NBIOTCOPER-3334](https://jira.realtek.com/browse/NBIOTCOPER-3334)
     > assert这一个子帧，呼叫了5次Osp_AllocNonPersistentMsg，约花费cycle count为1369*5=6845。
+
+### 20221228
+*   jira issue [NBIOTCOPER-3334](https://jira.realtek.com/browse/NBIOTCOPER-3334)
+    *   考虑到这边是L1C task给 msg task送的msg，msgType or size都是固定的，改采为array的形式，不再去动态allocate memory，大约只花100不到的cycle count，在此场景下：可以省掉1369 * 5 - 98 * 5 = 6355个cycle count，fix by master rv.0be0fd14。
+    *   Ted有提议可以使用partition pool，考虑了一下应该是可行，只要在free的时候根据msg type来调用l1c 这边的free API，而非osp的free API即可
+*   FTI2C的问题找到原因了：
+    > 看起来就是clock在低电平的时候，data才能被改变(clock的内容被包在了data内，clock要用0110的pattern才行，不能用01去指示)
+    ![FTI2C_clock_data](FTI2C_clock_data.png)
+*   写年度自评表
+*   了解ARM的汇编语言
+    > [ARM 汇编指令集](https://blog.csdn.net/qq_35056682/article/details/122751986)
+*   更改download server为sdmft.rtkbf.com
+    * 上载东西进SDN的folder是ftpin，下载东西出来的folder是release.out
+*   配置北京和深圳QC的/etc/udev/rules.d/99-usb-serial.rules
+    > ```sh
+    > udevadm info -a /dev/ttyUSB0
+    > 查到：
+    > ATTRS{idVendor}=="0403"
+    > ATTRS{idProduct}=="6001"
+    > ATTRS{serial}=="AU027GNM"
+    > 
+    > udevadm info -a /dev/ttyUSB2
+    > 查到：
+    > KERNELS=="?-3.3"
+    > ATTRS{idVendor}=="067b"
+    > ATTRS{idProduct}=="2303"
+    > 
+    > sudo nano /etc/udev/rules.d/99-usb-serial.rules
+    > 写上如下的：
+    > SUBSYSTEM=="tty", KERNELS=="*", ATTRS{idVendor}=="0403", ATTRS{idProduct}=="6001", ATTRS{serial}=="AU027GNM", SYMLINK+="ttyCooper-AT"
+    > SUBSYSTEM=="tty", KERNELS=="*", ATTRS{idVendor}=="0403", ATTRS{idProduct}=="6001", ATTRS{serial}=="AU026UHH", SYMLINK+="ttyCooper-LOG", SYMLINK+="ttyCooper-CONSOLE"
+    > SUBSYSTEM=="tty", KERNELS=="?-3.3", ATTRS{idVendor}=="067b", ATTRS{idProduct}=="2303", SYMLINK+="ttyCooper-CONTROL"（looking at parent device '/devices/pci0000:00/0000:00:14.0/usb1/1-3/1-3.3': KERNELS=="?-3.3"說的是不管該hub放在root hub的哪個位置 (那個”?”)，其中的第三個device就是我們的目標）
+    > SUBSYSTEM=="tty", KERNELS=="?-3.4.1", ATTRS{idVendor}=="067b", ATTRS{idProduct}=="2303", SYMLINK+="ttyCooper-AUXCTRL"（looking at parent device '/devices/pci0000:00/0000:00:14.0/usb1/1-3/1-3.4/1-3.4.1':KERNELS=="?-3.4.1"說的是不管該hub放在root hub的哪個位置 (那個”?”)，其中的第四個device就是我們的目標）
+    > sudo udevadm trigger（使其生效）
+    > ```
+
+### 20221229
+*   nvram introduction part 2 by jimmy
+*   和Rachel trace log：MP mode下，收到TX cmd，会睡下去没办法做起来
+    > msg task那边将awake 5ms调整到最前面引起的side effect
+*   jira issue [NBIOTCOPER-3304](https://jira.realtek.com/browse/NBIOTCOPER-3304)
+*   trace jira issue [NBIOTCOPER-3335](https://jira.realtek.com/browse/NBIOTCOPER-3335)
+    > 有用taco去使用gdb，将target_ram.axf和如下命令生成的core放进folder下：/home/manda/Temp/202011-202203/202210/jira_3218/CN3WD7_COOPER-Test-14026-2022_1018_1203/release
+    > ```sh
+    > taco Modem_2022_12_28_040154_COM12.talog.960000.talog --output core
+    > ```
+
+### 20221230
+*   jira issue [NBIOTCOPER-3304](https://jira.realtek.com/browse/NBIOTCOPER-3304)
+    *   859958 39365.452758 46957779 1538712515 29601 0 Ping Request----->对应到 Publish Message (id=567)
+        860406 39568.396606 47160723 1545362579 40565 0 Ping Request----->对应到 Publish Message (id=569)
+        861894 40711.601745 48303928 1582823125 36950 0 Ping Request----->对应到 Publish Message (id=582)
+        862410 40796.324737 48388651 1585599328 42443 0 Ping Request----->对应到 Publish Message (id=584)
+        从第615测试才开始MQTT掉线，上述这边并不是掉线的案发现场
+    *   另外，review L1C的code，发现master上有fix一些bug没有cherry-pick到v4.0，会再cherry-pick过去，与此题的掉线无关。
+*   帮忙casey看掉GCF fail的几题case，基本上都是TX打出去，网络端decode时CRC fail
+    *   jira issue [NBIOTCOPER-945](https://jira.realtek.com/browse/NBIOTCOPER-945)
+    *   jira issue [NBIOTCOPER-342](https://jira.realtek.com/browse/NBIOTCOPER-342)
+    *   jira issue [NBIOTCOPER-389](https://jira.realtek.com/browse/NBIOTCOPER-389)
+    *   jira issue [NBIOTCOPER-419](https://jira.realtek.com/browse/NBIOTCOPER-419)
+*   和owen讨论EMMDC_EST_REQ时读sib14的优化问题
+    > 只要底层正在读sib14，就不需要再下abort和read req
+    > detach req收到之后，不用再回两次EST_FAIL给上层，直接等前一笔处理完成之后，再受理即可
+*   nvram相关的code/issue trace
+    > jira issue [NBIOTCOPER-3204](https://jira.realtek.com/browse/NBIOTCOPER-3204)
+*   确认深圳QC 板子的port口情况
+    > 看起来设定的/etc/udev/rules.d/99-usb-serial.rules存在mapping问题(重新插拔后mapping顺序会乱掉)，先disable掉这个功能
