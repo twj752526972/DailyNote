@@ -2749,3 +2749,17 @@ pk9518_ram.ld.S 有用 pre-processor 處理，有帶進 CPPFLAGS
     > jira issue [NBIOTCOPER-3204](https://jira.realtek.com/browse/NBIOTCOPER-3204)
 *   确认深圳QC 板子的port口情况
     > 看起来设定的/etc/udev/rules.d/99-usb-serial.rules存在mapping问题(重新插拔后mapping顺序会乱掉)，先disable掉这个功能
+
+### 20230103
+*   CMCC的IP address无法ping通，需要修改
+    > [QC] modify the IPv4 address for CMCC
+*   了解nvram 相关的code(包括XIP gap等)
+
+### 20230104
+*   trace core communication code
+
+### 20230105
+*   确认Potential CMCC 芯片入庫需要整合進 v4.0 的 feature or fix
+    > 提高RACH的priority(灌包测试)
+    > support at*enginfo(测试人员需要该at command query RSRP/SNR等讯息)
+*   trace core communication code

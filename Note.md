@@ -144,3 +144,17 @@ typedef struct __cdex(
 ##### macro 'ENABLE_CC_AP_L23' ----By Jimmy
 *   在 osp_core_communication.c 裡，ENABLE_CC_AP_L23包起來的部分，可以說是 CC 與 AP_CC 的 handshare，將 "ENABLE_CC_AP_L23" 改名為 "ENABLE_CC_AP"，在 MULTICORE_APL23_L1C 的情況下也會去 ENABLE_CC_AP，這樣一來，至少 CC → APCC 這個方向就成功
 
+### 20230117
+##### 如果不特別做什麼，SMS 檔案的 bss/data 會放在 SRAM1，目前 SRAM1 很緊，會爆掉，只要稍微改一下，指定放去 KM4 retention sram，應該就可以了
+*   cooper_sdk 的 component/common/modem/support/plat/region.h
+    > #define NAS_RETENTION_BSS RETENTION_BSS_SECTION，就會把它放到 KM4 retention
+    > 少數像 ADP 就是在 SRAM1:
+    > #define ADP_RETENTION_BSS SRAM1_RETENTION_1_BSS_SECTION
+    > 其它沒指定的，就會看 linker script
+    > ```sh
+    > __sram1_retention_1_bss_start__ = .;
+    > lib/lib_modem_l23.a:*(.bss*)
+    > *(.sram1.retention.1.bss*)
+    > __sram1_retention_1_bss_end__ = .;
+    > ```
+    > SMS 就是原本沒指定的，把sms的三個檔案的 global variable 加上 NAS_RETENTION_BSS 描述
