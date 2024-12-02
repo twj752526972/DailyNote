@@ -2763,3 +2763,7 @@ pk9518_ram.ld.S 有用 pre-processor 處理，有帶進 CPPFLAGS
     > 提高RACH的priority(灌包测试)
     > support at*enginfo(测试人员需要该at command query RSRP/SNR等讯息)
 *   trace core communication code
+
+### 20241202
+*   利用wd7上的板子，换上运营商为46692, "Chunghwa", "TW"的卡，即可以连上Genus的TCP server **2403:8600:2090:14::a, 4059**
+*   当socket和ping同时存在时，ping默认会使用fd为0的去做lwip connection，所以在ping的中途去open socket ID 0的话，是得到ERROR：-13 ERR_SOCKET_BAD_FD的结果，而socket ID 1和2等这些，则会成功。
